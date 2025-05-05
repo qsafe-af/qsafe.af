@@ -18,7 +18,7 @@ const Chain = () => {
         (!!manifest)
           ? (
               <>
-                <h2>{manifest.name}</h2>
+                <h2>{manifest['name']}</h2>
                 {
                   manifest.description.map((paragraph, pI) => (
                     <p key={pI}>{paragraph}</p>
@@ -34,7 +34,7 @@ const Chain = () => {
                           {
                             manifest.endpoints.map((endpoint, eI) => (
                               <li key={eI}>
-                                {endpoint.name}
+                                {endpoint['name']}
                               </li>
                             ))
                           }
