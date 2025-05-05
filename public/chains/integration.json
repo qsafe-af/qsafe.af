@@ -1,7 +1,7 @@
 {
   "name": "integration",
   "description": [
-    "a frequently reset network testnet, where internal and partner integrations are tested, throught the development lifecycle."
+    "a frequently reset network testnet, where internal and partner integrations are tested, throughout the development lifecycle."
   ],
   "endpoints": [
     {

@@ -27,8 +27,8 @@ const Header = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav>
-            <Nav.Link href="/">
-              link
+            <Nav.Link href="https://github.com/qsafe-af/qsafe.af">
+              <i class="bi bi-github"></i>
             </Nav.Link>
             <NavDropdown title="chains" id="basic-nav-dropdown">
               <NavDropdown.Item href="/chains/quantus">

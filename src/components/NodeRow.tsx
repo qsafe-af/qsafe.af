@@ -20,10 +20,17 @@ interface NodeRowProps {
   node: Node;
 }
 
+interface Height {
+  start: number;
+  current: number;
+  highest: number;
+}
+
 const NodeRow = (props: NodeRowProps) => {
   const { node } = props;
   const [health, setHealth] = useState<Health | undefined>(undefined);
   const [version, setVersion] = useState<Version | undefined>(undefined);
+  const [height, setHeight] = useState<Height | undefined>(undefined);
   useEffect(() => {
     fetch(`${node.rpc}/health`, {
       method: 'GET',
@@ -57,6 +64,32 @@ const NodeRow = (props: NodeRowProps) => {
         });
       });
   }, [node.rpc]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch(node.rpc, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'system_syncState',
+          params: []
+        }),
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          setHeight({
+            start: json.result.startingBlock,
+            current: json.result.currentBlock,
+            highest: json.result.highestBlock,
+          });
+        });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [node.rpc]);
   return (
     <tr>
       <td>{node.name}</td>
@@ -84,7 +117,19 @@ const NodeRow = (props: NodeRowProps) => {
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>
-      <td>height</td>                                    
+      <td>
+        {
+          (!!height)
+            ? (
+                <>
+                  <span>
+                    {new Intl.NumberFormat().format(height.current)}
+                  </span>
+                </>
+              )
+            : <Spinner animation="border" size="sm" variant="secondary" />
+        }
+      </td>                                    
     </tr>
   );
 };

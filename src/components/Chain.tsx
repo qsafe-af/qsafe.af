@@ -48,12 +48,16 @@ const Chain = () => {
                     ? (
                         <>
                           <h2>known public endpoints</h2>
-                          <p>endpoints listed below are known allow public access and maintain a public status document where historical downtime is recorded and observable.</p>
+                          <p>endpoints listed below are known to allow public access and maintain a public status uri where historical downtime is recorded and observable.</p>
                           <ul>
                           {
                             manifest.endpoints.map((endpoint, eI) => (
                               <li key={eI}>
                                 {endpoint.name}
+                                <ul>
+                                  <li>json rpc: <code>{endpoint.rpc}</code></li>
+                                  <li>web socket: <code>{endpoint.wss}</code></li>
+                                </ul>
                               </li>
                             ))
                           }
@@ -98,6 +102,9 @@ const Chain = () => {
                         </>
                       )
                 }
+                <a href={`https://github.com/qsafe-af/qsafe.af/edit/main/public/chains/${chain}.json`}>
+                  <i class="bi bi-plus-square-dotted"></i> add an endpoint/node
+                </a>
               </>
             )
           : null
