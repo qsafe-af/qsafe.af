@@ -103,7 +103,7 @@ const Chain = () => {
                       )
                 }
                 <a href={`https://github.com/qsafe-af/qsafe.af/edit/main/public/chains/${chain}.json`}>
-                  <i class="bi bi-plus-square-dotted"></i> add an endpoint/node
+                  <i className="bi bi-plus-square-dotted"></i> add an endpoint/node
                 </a>
               </>
             )
