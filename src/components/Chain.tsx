@@ -132,10 +132,10 @@ const Chain = () => {
                           <Table striped hover>
                             <thead>
                               <tr>
-                                <th>name</th>
-                                <th>version</th>
-                                <th>peers</th>
-                                <th>height</th>
+                                <th>node</th>
+                                <th>runtime</th>
+                                <th>peer count</th>
+                                <th>block height</th>
                               </tr>
                             </thead>
                             <tbody>
