@@ -1,0 +1,30 @@
+{
+  "name": "resonance",
+  "description": [
+    "a public canary network, implementing bleeding edge feature-sets for post quantum blockchains."
+  ],
+  "endpoints": [
+    {
+      "name": "t.res.fm",
+      "rpc": "https://a.t.res.fm",
+      "wss": "wss://a.t.res.fm"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "allitnils",
+      "rpc": "https://a1.t.res.fm",
+      "wss": "wss://a1.t.res.fm"
+    },
+    {
+      "name": "colin",
+      "rpc": "https://a2.t.res.fm",
+      "wss": "wss://a2.t.res.fm"
+    },
+    {
+      "name": "rai",
+      "rpc": "https://a3.t.res.fm",
+      "wss": "wss://a3.t.res.fm"
+    }
+  ]
+}

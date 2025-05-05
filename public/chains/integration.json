@@ -1,0 +1,30 @@
+{
+  "name": "integration",
+  "description": [
+    "a frequently reset network testnet, where internal and partner integrations are tested, throught the development lifecycle."
+  ],
+  "endpoints": [
+    {
+      "name": "i.res.fm",
+      "rpc": "https://a.i.res.fm",
+      "wss": "wss://a.i.res.fm"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "bob",
+      "rpc": "https://a1.i.res.fm",
+      "wss": "wss://a1.i.res.fm"
+    },
+    {
+      "name": "frootmig",
+      "rpc": "https://a2.i.res.fm",
+      "wss": "wss://a2.i.res.fm"
+    },
+    {
+      "name": "effrafax",
+      "rpc": "https://a3.i.res.fm",
+      "wss": "wss://a3.i.res.fm"
+    }
+  ]
+}
