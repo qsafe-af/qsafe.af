@@ -26,7 +26,7 @@ const NodeRow = (props: NodeRowProps) => {
   const [version, setVersion] = useState<Version | undefined>(undefined);
   useEffect(() => {
     fetch(`${node.rpc}/health`, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
       },
