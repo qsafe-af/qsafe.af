@@ -1,6 +1,4 @@
-import React from 'react'
 import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
-import quantusLogo from '/res.svg';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import Chain from './components/Chain';
