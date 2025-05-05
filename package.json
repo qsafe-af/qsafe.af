@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "tsc -b && vite build",
+    "deploy": "npx wrangler pages deploy dist"
   },
   "dependencies": {
     "bootstrap": "^5.3.5",
