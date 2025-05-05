@@ -20,7 +20,7 @@ const Header = () => {
   return (
     <Container>
       <Navbar expand="lg">
-        <Navbar.Brand href="/">
+        <Navbar.Brand href="/chains">
           <img src={Logo} alt="quantus logo" style={{width: '0.8em', marginRight: '0.3em'}} />
           qsafe.af
         </Navbar.Brand>
@@ -36,19 +36,16 @@ const Header = () => {
               </NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item href="/chains/resonance">
-                resonance (testnet)
+                resonance
               </NavDropdown.Item>
               <NavDropdown.Item href="/chains/integration">
-                integration (testnet)
+                integration
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>
         </Navbar.Collapse>
       </Navbar>
       <Breadcrumb>
-        <Breadcrumb.Item href="/">
-          dashboard
-        </Breadcrumb.Item>
         {
           ((!!crumbs && !!crumbs.length))
             ? crumbs.map((crumb, cI) => (

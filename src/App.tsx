@@ -6,8 +6,7 @@ import Chains from './components/Chains';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Header />}>
-      <Route index element={<Dashboard />} />
+    <Route path="/chains" element={<Header />}>
       <Route path="/chains" element={<Chains />} />
       <Route path="/chains/:chain" element={<Chain />} />
     </Route>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
+import Spinner from 'react-bootstrap/Spinner';
 import NodeRow from './NodeRow';
 
 interface Endpoint {
@@ -22,15 +23,46 @@ interface ChainManifest {
   nodes: Node[];
 }
 
+interface Token {
+  decimals: number;
+  symbol: string;
+}
+
 const Chain = () => {
   let { chain } = useParams();
   const [manifest, setManifest] = useState<ChainManifest | undefined>(undefined);
+  const [token, setToken] = useState<Token | undefined>(undefined);
 
   useEffect(() => {
     fetch(`/chains/${chain}.json`)
       .then((response) => response.json())
       .then((json) => setManifest(json));
   }, [chain]);
+
+  useEffect(() => {
+    if (!!manifest && !!manifest.endpoints && !!manifest.endpoints.length) {
+      fetch(manifest.endpoints[0].rpc, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'system_properties',
+          params: []
+        }),
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          setToken({
+            decimals: json.result.tokenDecimals,
+            symbol: json.result.tokenSymbol,
+          });
+        });
+    }
+  }, [manifest]);
   return (
     <>
       {
@@ -42,6 +74,24 @@ const Chain = () => {
                   manifest.description.map((paragraph, pI) => (
                     <p key={pI}>{paragraph}</p>
                   ))
+                }
+                {
+                  (!!token)
+                    ? (
+                        <ul>
+                          <li>
+                            decimals: {token.decimals}
+                          </li>
+                          <li>
+                            symbol: {token.symbol}
+                          </li>
+                        </ul>
+                      )
+                    : (
+                        (!!manifest && !!manifest.endpoints && !!manifest.endpoints.length)
+                          ? <Spinner animation="border" size="sm" variant="secondary" />
+                          : null
+                      )
                 }
                 {
                   (!!manifest.endpoints && !!manifest.endpoints.length)
@@ -57,6 +107,9 @@ const Chain = () => {
                                 <ul>
                                   <li>json rpc: <code>{endpoint.rpc}</code></li>
                                   <li>web socket: <code>{endpoint.wss}</code></li>
+                                  <li>
+                                    <a href={`https://polkadot.js.org/apps/?rpc=${endpoint.wss}#/explorer`}>explorer</a>
+                                  </li>
                                 </ul>
                               </li>
                             ))
@@ -99,6 +152,7 @@ const Chain = () => {
                         <>
                           <h2>no known public nodes</h2>
                           <code>watch this space!</code>
+                          <hr />
                         </>
                       )
                 }
