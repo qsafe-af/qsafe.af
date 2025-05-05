@@ -1,10 +1,29 @@
 import { useEffect, useState } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 
-const NodeRow = (props) => {
+interface Version {
+  semver: string;
+  sha: string;
+}
+
+interface Health {
+  peers: number;
+}
+
+interface Node {
+  name: string;
+  rpc: string;
+  wss: string;
+}
+
+interface NodeRowProps {
+  node: Node;
+}
+
+const NodeRow = (props: NodeRowProps) => {
   const { node } = props;
-  const [health, setHealth] = useState(undefined);
-  const [version, setVersion] = useState(undefined);
+  const [health, setHealth] = useState<Health | undefined>(undefined);
+  const [version, setVersion] = useState<Version | undefined>(undefined);
   useEffect(() => {
     fetch(`${node.rpc}/health`, {
       method: 'POST',

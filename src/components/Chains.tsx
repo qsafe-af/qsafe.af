@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown'
 
 const Chains = () => {
-  const [body, setBody] = useState(undefined);
+  const [body, setBody] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     fetch(`/chains.md`)

@@ -3,9 +3,28 @@ import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import NodeRow from './NodeRow';
 
+interface Endpoint {
+  name: string;
+  rpc: string;
+  wss: string;
+}
+
+interface Node {
+  name: string;
+  rpc: string;
+  wss: string;
+}
+
+interface ChainManifest {
+  name: string;
+  description: string[];
+  endpoints: Endpoint[];
+  nodes: Node[];
+}
+
 const Chain = () => {
   let { chain } = useParams();
-  const [manifest, setManifest] = useState(undefined);
+  const [manifest, setManifest] = useState<ChainManifest | undefined>(undefined);
 
   useEffect(() => {
     fetch(`/chains/${chain}.json`)
@@ -18,7 +37,7 @@ const Chain = () => {
         (!!manifest)
           ? (
               <>
-                <h2>{manifest['name']}</h2>
+                <h2>{manifest.name}</h2>
                 {
                   manifest.description.map((paragraph, pI) => (
                     <p key={pI}>{paragraph}</p>
@@ -34,7 +53,7 @@ const Chain = () => {
                           {
                             manifest.endpoints.map((endpoint, eI) => (
                               <li key={eI}>
-                                {endpoint['name']}
+                                {endpoint.name}
                               </li>
                             ))
                           }

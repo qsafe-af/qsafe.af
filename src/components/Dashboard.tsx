@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Dashboard = () => (
   <>
     <h2>dashboard</h2>

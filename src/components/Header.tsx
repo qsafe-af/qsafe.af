@@ -1,5 +1,4 @@
-import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -10,7 +9,7 @@ import Logo from '../assets/res.svg';
 
 const Header = () => {
   const loc = useLocation();
-  const { hash, pathname, search } = loc;
+  const { pathname } = loc;
   const x = pathname.split('/').filter((c) => !!c);
   const crumbs = x.map((c, i) => (
     {
