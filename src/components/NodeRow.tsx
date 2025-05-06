@@ -63,19 +63,24 @@ const NodeRow = (props: NodeRowProps) => {
   const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
   useEffect(() => {
-    rpcHealth(`${node.rpc}/health`).then(setHealth);
+    const healthInterval = setInterval(() => {
+      rpcHealth(`${node.rpc}/health`).then(setHealth);
+    }, 5111);
     rpc(node.rpc, 'system_version', [])
       .then(({ result }) => {
         const [version, sha] = result.split('-');
         setRuntime({ version, sha });
       });
-    const interval = setInterval(() => {
+    const heightInterval = setInterval(() => {
       rpc(node.rpc, 'system_syncState', [])
         .then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => {
           setHeight({ start, current, highest });
         });
     }, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(healthInterval);
+      clearInterval(heightInterval);
+    };
   }, [node.rpc]);
   return (
     <tr>

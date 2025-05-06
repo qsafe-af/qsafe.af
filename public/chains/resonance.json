@@ -17,12 +17,12 @@
       "wss": "wss://a1.t.res.fm"
     },
     {
-      "name": "frootmig",
+      "name": "effrafax",
       "rpc": "https://a2.t.res.fm",
       "wss": "wss://a2.t.res.fm"
     },
     {
-      "name": "effrafax",
+      "name": "frootmig",
       "rpc": "https://a3.t.res.fm",
       "wss": "wss://a3.t.res.fm"
     }
