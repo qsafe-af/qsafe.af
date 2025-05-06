@@ -8,6 +8,7 @@ interface Endpoint {
   name: string;
   rpc: string;
   wss: string;
+  status: string;
 }
 
 interface Node {
@@ -109,6 +110,9 @@ const Chain = () => {
                                   <li>web socket: <code>{endpoint.wss}</code></li>
                                   <li>
                                     <a href={`https://polkadot.js.org/apps/?rpc=${endpoint.wss}#/explorer`}>explorer</a>
+                                  </li>
+                                  <li>
+                                    <a href={endpoint.status}>status</a>
                                   </li>
                                 </ul>
                               </li>

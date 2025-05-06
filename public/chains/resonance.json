@@ -7,7 +7,8 @@
     {
       "name": "t.res.fm",
       "rpc": "https://a.t.res.fm",
-      "wss": "wss://a.t.res.fm"
+      "wss": "wss://a.t.res.fm",
+      "status": "https://status.res.fm"
     }
   ],
   "nodes": [
