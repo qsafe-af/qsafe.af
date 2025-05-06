@@ -90,7 +90,18 @@ const NodeRow = (props: NodeRowProps) => {
           (!!runtime)
             ? (
                 <span>
-                  {runtime.version} {runtime.sha}
+                  {runtime.version}
+                </span>
+              )
+            : <Spinner animation="border" size="sm" variant="secondary" />
+        }
+      </td>
+      <td>
+        {
+          (!!runtime)
+            ? (
+                <span>
+                  {runtime.sha}
                 </span>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />

@@ -137,7 +137,8 @@ const Chain = () => {
                             <thead>
                               <tr>
                                 <th>node</th>
-                                <th>runtime</th>
+                                <th>version</th>
+                                <th>build sha</th>
                                 <th>peer count</th>
                                 <th>block height</th>
                               </tr>
