@@ -57,29 +57,47 @@ const rpcHealth = async (url: string) => {
   return await response.json();
 };
 
+const randomInteger = (
+  min: number,
+  max: number
+) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+
 const NodeRow = (props: NodeRowProps) => {
   const { node } = props;
   const [health, setHealth] = useState<Health | undefined>(undefined);
   const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
+  const [genesis, setGenesis] = useState<string | undefined>(undefined);
   useEffect(() => {
     const healthInterval = setInterval(() => {
       rpcHealth(`${node.rpc}/health`).then(setHealth);
-    }, 5111);
-    rpc(node.rpc, 'system_version', [])
-      .then(({ result }) => {
-        const [version, sha] = result.split('-');
-        setRuntime({ version, sha });
-      });
+    }, randomInteger(4000, 6000));
+    const runtimeInterval = setInterval(() => {
+      rpc(node.rpc, 'system_version', [])
+        .then(({ result }) => {
+          const [version, sha] = result.split('-');
+          setRuntime({ version, sha });
+        });
+    }, randomInteger(30000, 60000));
     const heightInterval = setInterval(() => {
       rpc(node.rpc, 'system_syncState', [])
         .then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => {
           setHeight({ start, current, highest });
         });
-    }, 1000);
+    }, randomInteger(800, 1200));
+    const genesisInterval = setInterval(() => {
+      rpc(node.rpc, 'chainSpec_v1_genesisHash', []).then(({ result }) => setGenesis(result));
+    }, randomInteger(10000, 30000));
     return () => {
       clearInterval(healthInterval);
+      clearInterval(runtimeInterval);
       clearInterval(heightInterval);
+      clearInterval(genesisInterval);
     };
   }, [node.rpc]);
   return (
