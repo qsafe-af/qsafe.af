@@ -74,26 +74,39 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
   const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
   const [genesis, setGenesis] = useState<string | undefined>(undefined);
+
   useEffect(() => {
-    const healthInterval = setInterval(() => {
-      rpcHealth(`${node.rpc}/health`).then(setHealth);
-    }, randomInteger(4000, 6000));
+
+    // version and build sha
+    rpc(node.rpc, 'system_version', []).then(({ result }) => {
+      const [version, sha] = result.split('-');
+      setRuntime({ version, sha });
+    });
     const runtimeInterval = setInterval(() => {
-      rpc(node.rpc, 'system_version', [])
-        .then(({ result }) => {
-          const [version, sha] = result.split('-');
-          setRuntime({ version, sha });
-        });
+      rpc(node.rpc, 'system_version', []).then(({ result }) => {
+        const [version, sha] = result.split('-');
+        setRuntime({ version, sha });
+      });
     }, randomInteger(30000, 60000));
-    const heightInterval = setInterval(() => {
-      rpc(node.rpc, 'system_syncState', [])
-        .then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => {
-          setHeight({ start, current, highest });
-        });
-    }, randomInteger(800, 1200));
+
+    // genesis
+    rpc(node.rpc, 'chainSpec_v1_genesisHash', []).then(({ result }) => setGenesis(result));
     const genesisInterval = setInterval(() => {
       rpc(node.rpc, 'chainSpec_v1_genesisHash', []).then(({ result }) => setGenesis(result));
     }, randomInteger(10000, 30000));
+
+    // peer count
+    rpcHealth(`${node.rpc}/health`).then(setHealth);
+    const healthInterval = setInterval(() => {
+      rpcHealth(`${node.rpc}/health`).then(setHealth);
+    }, randomInteger(4000, 6000));
+
+    // block height
+    rpc(node.rpc, 'system_syncState', []).then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => setHeight({ start, current, highest }));
+    const heightInterval = setInterval(() => {
+      rpc(node.rpc, 'system_syncState', []).then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => setHeight({ start, current, highest }));
+    }, randomInteger(800, 1200));
+
     return () => {
       clearInterval(healthInterval);
       clearInterval(runtimeInterval);
@@ -130,7 +143,7 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
         {
           (!!genesis)
             ? (
-                <OverlayTrigger placement="top" delay={{ show: 50, hide: 400 }} overlay={
+                <OverlayTrigger placement="top" delay={{ show: 50, hide: 150 }} overlay={
                   () => (
                     <Tooltip>
                       <code>{genesis}</code>
