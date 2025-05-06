@@ -143,11 +143,9 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
         {
           (!!genesis)
             ? (
-                <OverlayTrigger placement="top" delay={{ show: 50, hide: 150 }} overlay={
+                <OverlayTrigger delay={{ show: 50, hide: 150 }} overlay={
                   () => (
-                    <Tooltip>
-                      <code>{genesis}</code>
-                    </Tooltip>
+                    <Tooltip><code>{genesis}</code></Tooltip>
                   )
                 }>
                   <code>{genesis.slice(2, 9)}...{genesis.slice(-7)}</code>

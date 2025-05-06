@@ -49,9 +49,17 @@ const Header = () => {
         {
           ((!!crumbs && !!crumbs.length))
             ? crumbs.map((crumb, cI) => (
-                <Breadcrumb.Item key={cI} href={crumb.path}>
-                  {crumb.name}
-                </Breadcrumb.Item>
+                (crumbs.length === (cI + 1))
+                  ? (
+                      <Breadcrumb.Item key={cI} active>
+                        {crumb.name}
+                      </Breadcrumb.Item>
+                    )
+                  : (
+                      <Breadcrumb.Item key={cI} href={crumb.path}>
+                        {crumb.name}
+                      </Breadcrumb.Item>
+                    )
               ))
             : null
         }
