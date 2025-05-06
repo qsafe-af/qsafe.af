@@ -108,12 +108,8 @@ const Chain = () => {
                                 <ul>
                                   <li>json rpc: <code>{endpoint.rpc}</code></li>
                                   <li>web socket: <code>{endpoint.wss}</code></li>
-                                  <li>
-                                    <a href={`https://polkadot.js.org/apps/?rpc=${endpoint.wss}#/explorer`}>explorer</a>
-                                  </li>
-                                  <li>
-                                    <a href={endpoint.status}>status</a>
-                                  </li>
+                                  <li>explorer: <a href={`https://polkadot.js.org/apps/?rpc=${endpoint.wss}#/explorer`}>https://polkadot.js.org/apps/?rpc={endpoint.wss}#/explorer</a></li>
+                                  <li>status: <a href={endpoint.status}>{endpoint.status}</a></li>
                                 </ul>
                               </li>
                             ))
