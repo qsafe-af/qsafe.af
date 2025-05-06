@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 
-interface Version {
-  semver: string;
+interface Runtime {
+  version: string;
   sha: string;
 }
 
@@ -26,66 +26,53 @@ interface Height {
   highest: number;
 }
 
+const rpc = async (
+  url: string,
+  method: string,
+  params: string[],
+) => {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method,
+      params
+    }),
+  })
+  return await response.json();
+};
+
+const rpcHealth = async (url: string) => {
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  })
+  return await response.json();
+};
+
 const NodeRow = (props: NodeRowProps) => {
   const { node } = props;
   const [health, setHealth] = useState<Health | undefined>(undefined);
-  const [version, setVersion] = useState<Version | undefined>(undefined);
+  const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
   useEffect(() => {
-    fetch(`${node.rpc}/health`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-      .then((response) => response.json())
-      .then(setHealth);
-  }, [node.rpc]);
-  useEffect(() => {
-    fetch(node.rpc, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'system_version',
-        params: []
-      }),
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        const v = json.result.split('-');
-        setVersion({
-          semver: v[0],
-          sha: v[1],
-        });
+    rpcHealth(`${node.rpc}/health`).then(setHealth);
+    rpc(node.rpc, 'system_version', [])
+      .then(({ result }) => {
+        const [version, sha] = result.split('-');
+        setRuntime({ version, sha });
       });
-  }, [node.rpc]);
-  useEffect(() => {
     const interval = setInterval(() => {
-      fetch(node.rpc, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'system_syncState',
-          params: []
-        }),
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          setHeight({
-            start: json.result.startingBlock,
-            current: json.result.currentBlock,
-            highest: json.result.highestBlock,
-          });
+      rpc(node.rpc, 'system_syncState', [])
+        .then(({ result: { startingBlock: start, currentBlock: current, highestBlock: highest } }) => {
+          setHeight({ start, current, highest });
         });
     }, 1000);
     return () => clearInterval(interval);
@@ -95,13 +82,11 @@ const NodeRow = (props: NodeRowProps) => {
       <td>{node.name}</td>
       <td>
         {
-          (!!version)
+          (!!runtime)
             ? (
-                <>
-                  <span>{version.semver}</span>
-                  &nbsp;
-                  <span>{version.sha}</span>
-                </>
+                <span>
+                  {runtime.version} {runtime.sha}
+                </span>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
@@ -110,9 +95,9 @@ const NodeRow = (props: NodeRowProps) => {
         {
           (!!health)
             ? (
-                <>
-                  <span>{health.peers}</span>
-                </>
+                <span className={`text-${(health.peers > 0) ? 'primary' : 'secondary'}`}>
+                  {health.peers}
+                </span>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
@@ -121,11 +106,9 @@ const NodeRow = (props: NodeRowProps) => {
         {
           (!!height)
             ? (
-                <>
-                  <span>
-                    {new Intl.NumberFormat().format(height.current)}
-                  </span>
-                </>
+                <span className={`text-${(height.current === height.highest) ? 'primary' : 'secondary'}`}>
+                  {new Intl.NumberFormat().format(height.current)}
+                </span>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }

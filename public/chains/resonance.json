@@ -12,17 +12,17 @@
   ],
   "nodes": [
     {
-      "name": "allitnils",
+      "name": "bob",
       "rpc": "https://a1.t.res.fm",
       "wss": "wss://a1.t.res.fm"
     },
     {
-      "name": "colin",
+      "name": "frootmig",
       "rpc": "https://a2.t.res.fm",
       "wss": "wss://a2.t.res.fm"
     },
     {
-      "name": "rai",
+      "name": "effrafax",
       "rpc": "https://a3.t.res.fm",
       "wss": "wss://a3.t.res.fm"
     }
