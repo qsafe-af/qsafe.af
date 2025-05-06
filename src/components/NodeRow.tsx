@@ -66,7 +66,16 @@ const randomInteger = (
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+};
+
+const getCellClass = (
+  health: Health | undefined,
+  height: Height | undefined
+) => (
+  (!!health && (health.peers > 0) && !!height && (height.current === height.highest))
+    ? ''
+    : 'text-secondary'
+);
 
 
 const NodeRow: FC<NodeRowProps> = ({ node }) => {
@@ -116,8 +125,10 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
   }, [node.rpc]);
   return (
     <tr>
-      <td>{node.name}</td>
-      <td>
+      <td className={getCellClass(health, height)}>
+        {node.name}
+      </td>
+      <td className={getCellClass(health, height)}>
         {
           (!!runtime)
             ? (
@@ -128,7 +139,7 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>
-      <td>
+      <td className={getCellClass(health, height)}>
         {
           (!!runtime)
             ? (
@@ -139,7 +150,7 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>
-      <td>
+      <td className={getCellClass(health, height)}>
         {
           (!!genesis)
             ? (
@@ -154,25 +165,21 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>
-      <td>
+      <td className={getCellClass(health, height)}>
         {
           (!!health)
             ? (
-                <span className={`text-${(health.peers > 0) ? 'primary' : 'secondary'}`}>
+                <span>
                   {health.peers}
                 </span>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>
-      <td>
+      <td className={getCellClass(health, height)}>
         {
           (!!height)
-            ? (
-                <span className={`text-${(height.current === height.highest) ? 'primary' : 'secondary'}`}>
-                  {new Intl.NumberFormat().format(height.current)}
-                </span>
-              )
+            ? (new Intl.NumberFormat().format(height.current))
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
       </td>                                    
