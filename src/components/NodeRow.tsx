@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Spinner from 'react-bootstrap/Spinner';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 interface Runtime {
   version: string;
@@ -67,8 +69,7 @@ const randomInteger = (
 }
 
 
-const NodeRow = (props: NodeRowProps) => {
-  const { node } = props;
+const NodeRow: FC<NodeRowProps> = ({ node }) => {
   const [health, setHealth] = useState<Health | undefined>(undefined);
   const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
@@ -121,6 +122,23 @@ const NodeRow = (props: NodeRowProps) => {
                 <span>
                   {runtime.sha}
                 </span>
+              )
+            : <Spinner animation="border" size="sm" variant="secondary" />
+        }
+      </td>
+      <td>
+        {
+          (!!genesis)
+            ? (
+                <OverlayTrigger placement="top" delay={{ show: 50, hide: 400 }} overlay={
+                  () => (
+                    <Tooltip>
+                      <code>{genesis}</code>
+                    </Tooltip>
+                  )
+                }>
+                  <code>{genesis.slice(2, 9)}...{genesis.slice(-7)}</code>
+                </OverlayTrigger>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
