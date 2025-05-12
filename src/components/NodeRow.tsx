@@ -143,9 +143,9 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
         {
           (!!runtime)
             ? (
-                <span>
+                <a href={`https://github.com/Quantus-Network/chain/commit/${runtime.sha}`} target="_blank">
                   {runtime.sha}
-                </span>
+                </a>
               )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
