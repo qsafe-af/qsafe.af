@@ -8,24 +8,28 @@
       "name": "t.res.fm",
       "rpc": "https://a.t.res.fm",
       "wss": "wss://a.t.res.fm",
-      "status": "https://status.res.fm"
+      "status": "https://status.res.fm",
+      "maintainer": "https://quantus.com"
     }
   ],
   "nodes": [
     {
       "name": "bob",
       "rpc": "https://a1.t.res.fm",
-      "wss": "wss://a1.t.res.fm"
+      "wss": "wss://a1.t.res.fm",
+      "maintainer": "https://quantus.com"
     },
     {
       "name": "effrafax",
       "rpc": "https://a2.t.res.fm",
-      "wss": "wss://a2.t.res.fm"
+      "wss": "wss://a2.t.res.fm",
+      "maintainer": "https://quantus.com"
     },
     {
       "name": "frootmig",
       "rpc": "https://a3.t.res.fm",
-      "wss": "wss://a3.t.res.fm"
+      "wss": "wss://a3.t.res.fm",
+      "maintainer": "https://quantus.com"
     }
   ]
 }
