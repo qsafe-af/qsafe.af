@@ -31,7 +31,7 @@ interface Height {
 const rpc = async (
   url: string,
   method: string,
-  params: string[],
+  params: string|number[],
 ) => {
   const response = await fetch(url, {
     method: 'POST',
@@ -82,6 +82,7 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
   const [health, setHealth] = useState<Health | undefined>(undefined);
   const [runtime, setRuntime] = useState<Runtime | undefined>(undefined);
   const [height, setHeight] = useState<Height | undefined>(undefined);
+  const [hash, setHash] = useState<string | undefined>(undefined);
   const [genesis, setGenesis] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -123,6 +124,12 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
       clearInterval(genesisInterval);
     };
   }, [node.rpc]);
+  useEffect(() => {
+    //console.log(`chain_getBlockHash(height: ${height})`);
+    if (!!height && !!height.current) {
+      rpc(node.rpc, 'chain_getBlockHash', [height.current]).then(({ result }) => setHash(result));
+    }
+  }, [height]);
   return (
     <tr>
       <td className={getCellClass(health, height)}>
@@ -179,10 +186,25 @@ const NodeRow: FC<NodeRowProps> = ({ node }) => {
       <td className={getCellClass(health, height)}>
         {
           (!!height)
-            ? (new Intl.NumberFormat().format(height.current))
+            ? (
+                <span>
+                  {new Intl.NumberFormat().format(height.current)}
+                </span>
+              )
             : <Spinner animation="border" size="sm" variant="secondary" />
         }
-      </td>                                    
+      </td>
+      <td className={getCellClass(health, height)}>
+        {
+          (!!hash)
+            ? (
+                <span>
+                  <code>{hash.slice(2, 9)}...{hash.slice(-7)}</code>
+                </span>
+              )
+            : <Spinner animation="border" size="sm" variant="secondary" />
+        }
+      </td>
     </tr>
   );
 };

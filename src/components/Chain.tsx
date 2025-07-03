@@ -138,6 +138,7 @@ const Chain = () => {
                                 <th>genesis</th>
                                 <th>peer count</th>
                                 <th>block height</th>
+                                <th>block hash</th>
                               </tr>
                             </thead>
                             <tbody>
