@@ -3,6 +3,8 @@
   "description": [
     "a public canary network, implementing bleeding edge feature-sets for post quantum blockchains."
   ],
+  "treasury": "qzmviwoPJDWSHYw9BUwfjBc6gACdZCzho6eNEkEX459zrTdPK",
+  "index": "https://gql.res.fm/graphql",
   "endpoints": [
     {
       "name": "t.res.fm",
@@ -15,21 +17,32 @@
   "nodes": [
     {
       "name": "bob",
+      "ss58": "qzn6C9EKUpuNPm5qbe5jSq7uiCHV7ruixuzNM4DQQQGZxe2du",
       "rpc": "https://a1.t.res.fm",
       "wss": "wss://a1.t.res.fm",
       "maintainer": "https://quantus.com"
     },
     {
       "name": "effrafax",
+      "ss58": "qzo8VqpTojHapSvjwdLqze3GebmfAGS4Nq6rTnRsjR2S8u9mA",
       "rpc": "https://a2.t.res.fm",
       "wss": "wss://a2.t.res.fm",
       "maintainer": "https://quantus.com"
     },
     {
       "name": "frootmig",
+      "ss58": "qzprTjCZMGh9P76yJBKWFv5QeAdJ1buqmMtsmCS3uTXpoopWS",
       "rpc": "https://a3.t.res.fm",
       "wss": "wss://a3.t.res.fm",
       "maintainer": "https://quantus.com"
+    },
+    {
+      "name": "gramathea",
+      "ss58": "qzjxCJfheVUxLEZto56T6v4cKT5i4PTqHWYssDE6Sfyy6xwcS"
+    },
+    {
+      "name": "funds-are-quantum-safu",
+      "ss58": "qzoQf4od1mzuTa5AT9R8cbEUxQkyEiqGJyKfq8ZWcK9fTLCmh"
     }
   ]
 }
