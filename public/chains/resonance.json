@@ -43,6 +43,14 @@
     {
       "name": "funds-are-quantum-safu",
       "ss58": "qzoQf4od1mzuTa5AT9R8cbEUxQkyEiqGJyKfq8ZWcK9fTLCmh"
+    },
+    {
+      "name": "lakshmi",
+      "ss58": "qzozH5LezSn1XQ9k7Ezci6p4xK9J8GcjjeXPG8DwvFRzqKzaf"
+    },
+    {
+      "name": "StardustStaking",
+      "ss58": "qznhpVShWsRqhp4g4KVnD82AGdwQo5EVZp9fqdmUAJBLSyCeW"
     }
   ]
 }
