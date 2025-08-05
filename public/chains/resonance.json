@@ -51,6 +51,10 @@
     {
       "name": "StardustStaking",
       "ss58": "qznhpVShWsRqhp4g4KVnD82AGdwQo5EVZp9fqdmUAJBLSyCeW"
+    },
+    {
+      "name": "Legends",
+      "ss58": "qzmu2UxAm4JH9CjMLx3yVnPJGrwbq6iJmKq6ZominTXjmSDEN"
     }
   ]
 }
