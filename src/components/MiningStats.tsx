@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import Table from "react-bootstrap/Table";
 import { ChainManifest, GraphQLResponse } from "../common/types";
 
@@ -53,6 +55,10 @@ interface MiningStatsProps {
 
 const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
   const [height, setHeight] = useState<number>(0);
+  const [blockWindowSizeOptions, setBlockWindowSizeOptions] = useState<
+    number[]
+  >([10, 100, 1000, 10000, 100000]);
+  const [blockWindowSize, setBlockWindowSize] = useState<number>(1000);
   const [events, setEvents] = useState<{ author: string; block: number }[]>([]);
   const [stats, setStats] = useState<
     { author: string; count: number; last: number }[]
@@ -71,6 +77,9 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
       .then((response) => response.json())
       .then(({ data: { blocks } }) => {
         setHeight(blocks[0].height);
+        setBlockWindowSizeOptions((bwso) =>
+          bwso.filter((o) => o <= blocks[0].height),
+        );
       });
     const interval = setInterval(() => {
       fetch(manifest.index, {
@@ -82,6 +91,9 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
         .then((response) => response.json())
         .then(({ data: { blocks } }) => {
           setHeight(blocks[0].height);
+          setBlockWindowSizeOptions((bwso) =>
+            bwso.filter((o) => o <= blocks[0].height),
+          );
         });
     }, 5000);
     return () => clearInterval(interval);
@@ -96,7 +108,7 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
       body: JSON.stringify({
         query: gqlAuthorQuery,
         variables: {
-          start: Math.max(height - 1800, 1),
+          start: Math.max(height - blockWindowSize, 1),
           end: height,
           treasury: manifest.treasury,
         },
@@ -118,7 +130,7 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
           ),
         );
       });
-  }, [height, manifest]);
+  }, [blockWindowSize, height, manifest]);
 
   useEffect((): void => {
     if (events.length === 0) return;
@@ -151,7 +163,24 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
 
   return stats && stats.length > 0 ? (
     <>
-      <h2>mining leaderboard (last 1800 blocks)</h2>
+      <h2>
+        mining leaderboard (last{" "}
+        <DropdownButton
+          style={{ display: "inline-block" }}
+          title={blockWindowSize}
+          onSelect={(_eventKey, { target: { text } }) => {
+            console.log(text);
+            const parsed = text ? Number.parseInt(text) : 1000;
+            setBlockWindowSize(Number.isNaN(parsed) ? 1000 : parsed);
+          }}
+          variant="secondary"
+        >
+          {blockWindowSizeOptions.map((n) => (
+            <Dropdown.Item key={n}>{n}</Dropdown.Item>
+          ))}
+        </DropdownButton>{" "}
+        blocks)
+      </h2>
       <Table striped bordered hover>
         <thead>
           <tr>
