@@ -245,7 +245,7 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
             return (
               <tr key={author}>
                 <td style={{ textAlign: "right" }}>{count}</td>
-                <td style={last === height ? { color: "hotpink" } : undefined}>
+                <td>
                   {manifest &&
                   manifest.nodes &&
                   manifest.nodes.some((node) => node.ss58 === author) ? (
