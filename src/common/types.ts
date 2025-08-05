@@ -38,6 +38,7 @@ export interface BalanceEvent {
 
 export interface Block {
   height: number;
+  timestamp: Date;
 }
 
 export interface GraphQLResponse {

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import Badge from "react-bootstrap/Badge";
 import Col from "react-bootstrap/Col";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
-import { ChainManifest, GraphQLResponse } from "../common/types";
+import { Block, ChainManifest, GraphQLResponse } from "../common/types";
 
 const gqlRequest = {
   method: "POST",
@@ -46,7 +47,8 @@ const gqlAuthorQuery = `
         type
       }
       block {
-        height
+        height,
+        timestamp
       }
     }
   }
@@ -57,6 +59,8 @@ interface MiningStatsProps {
 
 const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
   const [height, setHeight] = useState<number>(0);
+  const [first, setFirst] = useState<Block | undefined>(undefined);
+  const [last, setLast] = useState<Block | undefined>(undefined);
   const [blockWindowSizeOptions, setBlockWindowSizeOptions] = useState<
     number[]
   >([10, 100, 1000, 10000, 100000]);
@@ -124,13 +128,23 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
               balanceEvent: {
                 account: { id },
               },
-              block: { height },
-            }): { author: string; block: number } => ({
+              block: { height, timestamp },
+            }): { author: string; block: number; timestamp: Date } => ({
               author: id,
               block: height,
+              timestamp: new Date(timestamp),
             }),
           ),
         );
+
+        setFirst({
+          height: events[0].block.height,
+          timestamp: new Date(events[0].block.timestamp),
+        });
+        setLast({
+          height: events.slice(-1)[0].block.height,
+          timestamp: new Date(events.slice(-1)[0].block.timestamp),
+        });
       });
   }, [blockWindowSize, height, manifest]);
 
@@ -170,6 +184,37 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
           <h2>mining leaderboard</h2>
         </Col>
         <Col align="right">
+          {first ? (
+            <span>
+              from:{" "}
+              <Badge pill bg="dark">
+                {Intl.NumberFormat().format(first.height)}
+              </Badge>{" "}
+              {Intl.DateTimeFormat("default", {
+                timeStyle: "medium",
+                dateStyle: "medium",
+              })
+                .format(first.timestamp)
+                .toLowerCase()}
+            </span>
+          ) : null}{" "}
+          {last ? (
+            <span>
+              <br />
+              to:{" "}
+              <Badge pill bg="dark">
+                {Intl.NumberFormat().format(last.height)}
+              </Badge>{" "}
+              {Intl.DateTimeFormat("default", {
+                timeStyle: "medium",
+                dateStyle: "medium",
+              })
+                .format(last.timestamp)
+                .toLowerCase()}
+            </span>
+          ) : null}
+        </Col>
+        <Col align="right">
           <h3>
             last{" "}
             <DropdownButton
@@ -192,22 +237,14 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
           <tr>
             <th style={{ textAlign: "right" }}>score</th>
             <th>miner</th>
-            <th>last block</th>
+            <th style={{ textAlign: "right" }}>last block</th>
           </tr>
         </thead>
         <tbody>
           {stats.map(({ author, count, last }) => {
             return (
               <tr key={author}>
-                <td
-                  style={
-                    last === height
-                      ? { color: "hotpink", textAlign: "right" }
-                      : { textAlign: "right" }
-                  }
-                >
-                  {count}
-                </td>
+                <td style={{ textAlign: "right" }}>{count}</td>
                 <td style={last === height ? { color: "hotpink" } : undefined}>
                   {manifest &&
                   manifest.nodes &&
@@ -224,8 +261,19 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
                     <code>{author}</code>
                   )}
                 </td>
-                <td style={last === height ? { color: "hotpink" } : undefined}>
-                  {last}
+                <td style={{ textAlign: "right" }}>
+                  <Badge
+                    pill
+                    bg={
+                      last === height
+                        ? "danger"
+                        : last > height - blockWindowSize / 10
+                          ? "dark"
+                          : "secondary"
+                    }
+                  >
+                    {Intl.NumberFormat().format(last)}
+                  </Badge>
                 </td>
               </tr>
             );
