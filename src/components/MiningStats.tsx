@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import Col from "react-bootstrap/Col";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
 import { ChainManifest, GraphQLResponse } from "../common/types";
 
@@ -163,21 +165,28 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
 
   return stats && stats.length > 0 ? (
     <>
-      <h2>
-        mining leaderboard (last{" "}
-        <DropdownButton
-          style={{ display: "inline-block" }}
-          title={blockWindowSize}
-          variant="secondary"
-        >
-          {blockWindowSizeOptions.map((n) => (
-            <Dropdown.Item key={n} onClick={() => setBlockWindowSize(n)}>
-              {n}
-            </Dropdown.Item>
-          ))}
-        </DropdownButton>{" "}
-        blocks)
-      </h2>
+      <Row>
+        <Col>
+          <h2>mining leaderboard</h2>
+        </Col>
+        <Col align="right">
+          <h3>
+            last{" "}
+            <DropdownButton
+              style={{ display: "inline-block" }}
+              title={blockWindowSize}
+              variant="secondary"
+            >
+              {blockWindowSizeOptions.map((n) => (
+                <Dropdown.Item key={n} onClick={() => setBlockWindowSize(n)}>
+                  {n}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>{" "}
+            blocks
+          </h3>
+        </Col>
+      </Row>
       <Table striped bordered hover>
         <thead>
           <tr>
