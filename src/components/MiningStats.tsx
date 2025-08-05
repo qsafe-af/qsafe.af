@@ -168,15 +168,12 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
         <DropdownButton
           style={{ display: "inline-block" }}
           title={blockWindowSize}
-          onSelect={(_eventKey, { target: { text } }) => {
-            console.log(text);
-            const parsed = text ? Number.parseInt(text) : 1000;
-            setBlockWindowSize(Number.isNaN(parsed) ? 1000 : parsed);
-          }}
           variant="secondary"
         >
           {blockWindowSizeOptions.map((n) => (
-            <Dropdown.Item key={n}>{n}</Dropdown.Item>
+            <Dropdown.Item key={n} onClick={() => setBlockWindowSize(n)}>
+              {n}
+            </Dropdown.Item>
           ))}
         </DropdownButton>{" "}
         blocks)
