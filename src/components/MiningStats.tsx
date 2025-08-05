@@ -266,7 +266,7 @@ const MiningStats: React.FC<MiningStatsProps> = ({ manifest }) => {
                     pill
                     bg={
                       last === height
-                        ? "danger"
+                        ? "primary"
                         : last > height - blockWindowSize / 10
                           ? "dark"
                           : "secondary"
