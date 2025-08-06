@@ -46,7 +46,7 @@
     },
     {
       "name": "lakshmi",
-      "ss58": "qzozH5LezSn1XQ9k7Ezci6p4xK9J8GcjjeXPG8DwvFRzqKzaf"
+      "ss58": "qzmre1UiD9iAzP1fHZq3DyXprfDupoVNFDAJRF6edPDmwjEbR"
     },
     {
       "name": "StardustStaking",
@@ -55,6 +55,18 @@
     {
       "name": "Legends",
       "ss58": "qzmu2UxAm4JH9CjMLx3yVnPJGrwbq6iJmKq6ZominTXjmSDEN"
+    },
+    {
+      "name": "kume",
+      "ss58": "qzo84V7Ssq7Z3GS1oLVwQ59cByk6bCGvK15EjWrt85AMNqYNt"
+    },
+    {
+      "name": "gui-node",
+      "ss58": "qznrsyqc3HEkGy93HxZttNbBtia1nd9UDy5D8HrgfTTqRRnHv"
+    },
+    {
+      "name": "theminerz",
+      "ss58": "qzmZjkjgi34cba1892dthL38R3JGn9aVEJsDwnbSSwuEs338v"
     }
   ]
 }
