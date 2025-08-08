@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import { Container, Alert, Card, Badge, Spinner } from "react-bootstrap";
+import { Container, Alert, Card, Badge, Spinner, Form, Button, Row, Col } from "react-bootstrap";
 import { getChain, normalizeToGenesis } from "./chains";
 import Blocks from "./Blocks";
 import { QuantumDecoder, isQuantumChain } from "./decoder";
@@ -8,11 +8,129 @@ import QuantumBadge from "./QuantumBadge";
 import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
 import "./Activity.css";
 
+// Basic SCALE decoder for standard Substrate events
+function decodeStandardEvents(hex: string): SubstrateEvent[] {
+  if (!hex || hex === '0x') return [];
+  
+  const events: SubstrateEvent[] = [];
+  const data = new Uint8Array(hex.slice(2).match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || []);
+  let offset = 0;
+  
+  const readU8 = () => data[offset++];
+  const readCompact = () => {
+    const first = readU8();
+    const mode = first & 0x03;
+    if (mode === 0) return first >> 2;
+    if (mode === 1) return ((first >> 2) | (readU8() << 6));
+    if (mode === 2) {
+      const b2 = readU8();
+      const b3 = readU8();
+      const b4 = readU8();
+      return ((first >> 2) | (b2 << 6) | (b3 << 14) | (b4 << 22));
+    }
+    // For simplicity, treat mode 3 as a large number we can't fully decode
+    return 999999;
+  };
+  
+  try {
+    const eventCount = readCompact();
+    console.log(`Found ${eventCount} events in block`);
+    
+    for (let i = 0; i < eventCount && offset < data.length; i++) {
+      const phaseType = readU8();
+      let phase: any = {};
+      
+      if (phaseType === 0x00) {
+        // ApplyExtrinsic
+        const extrinsicIndex = readU8() | (readU8() << 8) | (readU8() << 16) | (readU8() << 24);
+        phase = { applyExtrinsic: extrinsicIndex };
+      } else if (phaseType === 0x01) {
+        phase = { finalization: true };
+      } else if (phaseType === 0x02) {
+        phase = { initialization: true };
+      } else {
+        // Unknown phase, skip this event
+        console.warn(`Unknown phase type: 0x${phaseType.toString(16)}`);
+        continue;
+      }
+      
+      const palletIndex = readU8();
+      const eventIndex = readU8();
+      
+      // Map common pallet indices to names
+      const palletNames: Record<number, string> = {
+        0: 'system',
+        1: 'timestamp',
+        2: 'balances',
+        10: 'balances', // Sometimes balances is at index 10
+        18: 'utility',
+      };
+      
+      // Map common event indices
+      const eventNames: Record<string, Record<number, string>> = {
+        'system': {
+          0: 'ExtrinsicSuccess',
+          1: 'ExtrinsicFailed',
+          6: 'NewAccount',
+        },
+        'balances': {
+          0: 'Endowed',
+          1: 'DustLost',
+          2: 'Transfer',
+          7: 'Deposit',
+          8: 'Withdraw',
+        },
+      };
+      
+      const palletName = palletNames[palletIndex] || `pallet${palletIndex}`;
+      const eventName = eventNames[palletName]?.[eventIndex] || `event${eventIndex}`;
+      
+      // For now, we'll store remaining data as raw bytes
+      // In a real implementation, you'd decode based on metadata
+      const eventDataStart = offset;
+      let eventData: any[] = [`Raw data starts at byte ${eventDataStart}`];
+      
+      // Try to extract some common patterns
+      if (palletName === 'balances' && eventName === 'Transfer') {
+        // Transfer typically has: from (32 bytes), to (32 bytes), amount (compact)
+        if (data.length - offset >= 64) {
+          const from = Array.from(data.slice(offset, offset + 32))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+          offset += 32;
+          const to = Array.from(data.slice(offset, offset + 32))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+          offset += 32;
+          eventData = [`from: 0x${from.slice(0, 8)}...`, `to: 0x${to.slice(0, 8)}...`];
+        }
+      }
+      
+      events.push({
+        phase,
+        event: {
+          section: palletName,
+          method: eventName,
+          data: eventData,
+        },
+        topics: [],
+      });
+    }
+  } catch (error) {
+    console.error('Error in basic SCALE decoder:', error);
+    console.log(`Failed at offset ${offset} of ${data.length} bytes`);
+  }
+  
+  return events;
+}
+
 const Activity: React.FC = () => {
   const { chainId } = useParams<{ chainId: string }>();
   const [blocks, setBlocks] = useState<BlockHeader[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+  const [manualBlockNumber, setManualBlockNumber] = useState<string>("");
+  const [manualQueryResult, setManualQueryResult] = useState<any>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const subscriptionIdRef = useRef<string | null>(null);
 
@@ -153,8 +271,23 @@ const Activity: React.FC = () => {
               // Try multiple storage keys for events (different chains might use different keys)
               const eventStorageKeys = [
                 "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7", // standard system.events
-                "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7", // system.events() for Substrate v2
+                "0x26aa394eea5630e07c48ae0c9558cef7780d41e5e16056765bc8461851072c9d7", // frame_system.Events
+                "0xcc956bdb7605e3547539f321ac2bc95c5f9f9b32b6d503fd8a855a3639c0209c", // possible alternative
               ];
+              
+              // First, let's see what storage keys exist for this block
+              const getKeysMessage = {
+                id: Math.floor(Math.random() * 1000000),
+                jsonrpc: "2.0",
+                method: "state_getKeys",
+                params: ["0x26aa394eea5630e07c48ae0c9558cef7", actualHash]
+              };
+              console.log(`Getting storage keys for block ${blockNumber} to find events storage`);
+              pendingRequests.set(getKeysMessage.id, { 
+                type: 'getStorageKeys', 
+                data: { blockNumber, blockHash: actualHash } 
+              });
+              wsRef.current.send(JSON.stringify(getKeysMessage));
               
               const getEventsMessage = {
                 id: Math.floor(Math.random() * 1000000),
@@ -185,27 +318,56 @@ const Activity: React.FC = () => {
               });
               wsRef.current.send(JSON.stringify(getBlockMessage));
             }
-          } else if (request?.type === 'getEvents') {
+          } else if (request?.type === 'getStorageKeys') {
             const { blockNumber } = request.data;
+            console.log(`Storage keys for block ${blockNumber}:`, data.result);
+            // Look for any key that might contain events
+            if (data.result && Array.isArray(data.result)) {
+              const eventKeys = data.result.filter((key: string) => 
+                key.includes('26aa394eea5630e07c48ae0c9558cef7') || 
+                key.toLowerCase().includes('event')
+              );
+              console.log(`Found potential event storage keys:`, eventKeys);
+            }
+          } else if (request?.type === 'getEvents') {
+            const { blockNumber, blockHash } = request.data;
             console.log(`Got events response for block ${blockNumber}:`, data.result);
+            console.log(`Response type:`, typeof data.result);
+            console.log(`Response length:`, data.result ? data.result.length : 'null');
             let events: SubstrateEvent[] = [];
             
             if (!data.result || data.result === '0x' || data.result === null) {
               console.log(`No events found for block ${blockNumber} (empty or null result)`);
+              // Try alternative event fetching for quantum chains
+              if (chain && isQuantumChain(chain.name) && wsRef.current) {
+                console.log(`Trying alternative event storage for quantum chain`);
+                // Try getting all storage changes for this block
+                const getStorageAtMessage = {
+                  id: Math.floor(Math.random() * 1000000),
+                  jsonrpc: "2.0",
+                  method: "state_queryStorage",
+                  params: [
+                    [
+                      "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
+                      "0x26aa394eea5630e07c48ae0c9558cef7780d41e5e16056765bc8461851072c9d7"
+                    ],
+                    blockHash,
+                    blockHash
+                  ]
+                };
+                console.log(`Querying storage changes for block ${blockNumber}`);
+                pendingRequests.set(getStorageAtMessage.id, { 
+                  type: 'queryStorageChanges', 
+                  data: { blockNumber, blockHash } 
+                });
+                wsRef.current.send(JSON.stringify(getStorageAtMessage));
+              }
             } else {
               try {
-                // Check if this is a quantum-resistant chain
-                if (chain && isQuantumChain(chain.name)) {
-                  console.log(`Attempting to decode quantum events for ${chain.name} chain...`);
-                  // Use quantum decoder for quantus and resonance chains
-                  const quantumEvents = QuantumDecoder.decodeEventsFromHex(data.result);
-                  events = QuantumDecoder.toSubstrateEvents(quantumEvents);
-                  console.log(`Decoded ${events.length} quantum events for block ${blockNumber}:`, events);
-                } else {
-                  // For other chains, we'd use standard SCALE decoding
-                  console.log(`Events for block ${blockNumber} (standard chain):`, data.result);
-                  // TODO: Implement standard SCALE decoder
-                }
+                // All chains (including quantum) use standard SCALE encoding for events
+                console.log(`Decoding standard SCALE events for block ${blockNumber}...`);
+                events = decodeStandardEvents(data.result);
+                console.log(`Decoded ${events.length} events for block ${blockNumber}:`, events);
               } catch (error) {
                 console.error(`Error decoding events for block ${blockNumber}:`, error);
                 console.error(`Raw event data that failed to decode:`, data.result);
@@ -230,6 +392,7 @@ const Activity: React.FC = () => {
             // Check if block contains extrinsics
             if (data.result && data.result.block && data.result.block.extrinsics) {
               console.log(`Block ${blockNumber} contains ${data.result.block.extrinsics.length} extrinsics`);
+              console.log(`Extrinsics:`, data.result.block.extrinsics);
               
               // If we find extrinsics but no events via storage, let's try to query events differently
               if (data.result.block.extrinsics.length > 0) {
@@ -254,6 +417,16 @@ const Activity: React.FC = () => {
           } else if (request?.type === 'queryStorage') {
             const { blockNumber } = request.data;
             console.log(`Query storage result for block ${blockNumber}:`, data.result);
+          } else if (request?.type === 'queryStorageChanges') {
+            const { blockNumber } = request.data;
+            console.log(`Storage changes for block ${blockNumber}:`, data.result);
+            if (data.result && Array.isArray(data.result) && data.result.length > 0) {
+              const changes = data.result[0]?.changes || [];
+              console.log(`Found ${changes.length} storage changes`);
+              changes.forEach((change: any, idx: number) => {
+                console.log(`Change ${idx}:`, change);
+              });
+            }
           }
           }
         }
@@ -335,6 +508,104 @@ const Activity: React.FC = () => {
     };
   }, [chain, chainId]);
 
+  const handleManualBlockQuery = () => {
+    if (!manualBlockNumber || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const blockNum = parseInt(manualBlockNumber);
+    if (isNaN(blockNum)) {
+      console.error("Invalid block number");
+      return;
+    }
+
+    console.log(`Manually querying block ${blockNum} for events...`);
+    setManualQueryResult({ loading: true, blockNumber: blockNum });
+
+    // First get the block hash
+    const requestId = Math.floor(Math.random() * 1000000);
+    const getBlockHashMessage = {
+      id: requestId,
+      jsonrpc: "2.0",
+      method: "chain_getBlockHash",
+      params: [blockNum]
+    };
+    
+    // Track this as a manual query
+    const pendingRequests = new Map<number, { type: string, data: any }>();
+    pendingRequests.set(requestId, { 
+      type: 'manualBlockHash', 
+      data: { blockNumber: blockNum.toString() } 
+    });
+
+    // Add custom handler for manual queries
+    const originalOnMessage = wsRef.current.onmessage;
+    wsRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.id === requestId && data.result) {
+          const blockHash = data.result;
+          console.log(`Manual query: Got hash ${blockHash} for block ${blockNum}`);
+          
+          // Now get events for this block
+          const eventsRequestId = Math.floor(Math.random() * 1000000);
+          const getEventsMessage = {
+            id: eventsRequestId,
+            jsonrpc: "2.0",
+            method: "state_getStorage",
+            params: [
+              "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
+              blockHash
+            ]
+          };
+          
+          wsRef.current?.send(JSON.stringify(getEventsMessage));
+          
+          // Handle events response
+          const eventsHandler = (eventsEvent: MessageEvent) => {
+            try {
+              const eventsData = JSON.parse(eventsEvent.data);
+              if (eventsData.id === eventsRequestId) {
+                console.log(`Manual query: Events result for block ${blockNum}:`, eventsData.result);
+                setManualQueryResult({
+                  loading: false,
+                  blockNumber: blockNum,
+                  blockHash: blockHash,
+                  eventsHex: eventsData.result,
+                  hasEvents: eventsData.result && eventsData.result !== '0x' && eventsData.result !== null
+                });
+                
+                // Restore original handler
+                if (wsRef.current) {
+                  wsRef.current.onmessage = originalOnMessage;
+                }
+              }
+            } catch (error) {
+              console.error("Error in manual events query:", error);
+            }
+            
+            // Continue with original handler
+            if (originalOnMessage) {
+              originalOnMessage.call(wsRef.current, eventsEvent);
+            }
+          };
+          
+          wsRef.current.onmessage = eventsHandler;
+        }
+      } catch (error) {
+        console.error("Error in manual block query:", error);
+      }
+      
+      // Continue with original handler
+      if (originalOnMessage) {
+        originalOnMessage.call(wsRef.current, event);
+      }
+    };
+    
+    wsRef.current.send(JSON.stringify(getBlockHashMessage));
+  };
+
   if (!chainId) {
     return <Navigate to="/chains/resonance/activity" />;
   }
@@ -403,6 +674,62 @@ const Activity: React.FC = () => {
           </div>
         </Card.Body>
       </Card>
+
+      {chain && isQuantumChain(chain.name) && (
+        <Card className="mb-4">
+          <Card.Header>
+            <h5 className="mb-0">Debug: Manual Block Query</h5>
+          </Card.Header>
+          <Card.Body>
+            <Form onSubmit={(e) => { e.preventDefault(); handleManualBlockQuery(); }}>
+              <Row>
+                <Col md={8}>
+                  <Form.Group>
+                    <Form.Label>Block Number</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter block number (e.g., 113380)"
+                      value={manualBlockNumber}
+                      onChange={(e) => setManualBlockNumber(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={4} className="d-flex align-items-end">
+                  <Button 
+                    variant="primary" 
+                    onClick={handleManualBlockQuery}
+                    disabled={connectionStatus !== "connected"}
+                  >
+                    Query Events
+                  </Button>
+                </Col>
+              </Row>
+            </Form>
+            
+            {manualQueryResult && (
+              <div className="mt-3">
+                {manualQueryResult.loading ? (
+                  <div><Spinner animation="border" size="sm" /> Querying block {manualQueryResult.blockNumber}...</div>
+                ) : (
+                  <Alert variant={manualQueryResult.hasEvents ? "info" : "warning"}>
+                    <strong>Block {manualQueryResult.blockNumber}</strong><br />
+                    <small className="text-muted">Hash: {manualQueryResult.blockHash}</small><br />
+                    <strong>Events:</strong> {manualQueryResult.hasEvents ? "Found" : "None"}<br />
+                    {manualQueryResult.eventsHex && (
+                      <details className="mt-2">
+                        <summary>Raw event data (click to expand)</summary>
+                        <pre className="mt-2 small" style={{ maxHeight: "200px", overflow: "auto" }}>
+                          {manualQueryResult.eventsHex}
+                        </pre>
+                      </details>
+                    )}
+                  </Alert>
+                )}
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      )}
 
       <Card className="mb-4">
         <Card.Header>
