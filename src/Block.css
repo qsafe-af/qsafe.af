@@ -1,0 +1,170 @@
+/* Block node styling for DAG visualization */
+.block-node {
+  position: relative;
+  margin-bottom: 2rem;
+  animation: slideIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.block-card {
+  border: 2px solid var(--bs-gray-300);
+  border-radius: 0.75rem;
+  background-color: var(--bs-body-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.block-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--bs-primary);
+}
+
+/* Block number styling */
+.block-number {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--bs-primary);
+}
+
+/* Block hash styling */
+.block-hash {
+  margin-top: 0.5rem;
+}
+
+.block-hash small {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Connector line to previous block */
+.block-connector {
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  width: 2px;
+  height: 2rem;
+  background: linear-gradient(to bottom, transparent, var(--bs-gray-400));
+  transform: translateX(-50%);
+}
+
+/* First block shouldn't have a connector */
+.block-node:first-child .block-connector {
+  display: none;
+}
+
+/* Dot at the connection point */
+.block-connector::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  border: 2px solid var(--bs-body-bg);
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Arrow pointing down */
+.block-connector::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--bs-gray-400);
+  transform: translateX(-50%);
+}
+
+/* Dark theme adjustments */
+[data-bs-theme="dark"] .block-card {
+  border-color: var(--bs-gray-700);
+  background-color: var(--bs-gray-900);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .block-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  border-color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .block-connector {
+  background: linear-gradient(to bottom, transparent, var(--bs-gray-600));
+}
+
+[data-bs-theme="dark"] .block-connector::after {
+  border-top-color: var(--bs-gray-600);
+}
+
+[data-bs-theme="dark"] .block-connector::before {
+  border-color: var(--bs-gray-900);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .block-node {
+    margin-bottom: 1.5rem;
+  }
+  
+  .block-card {
+    border-width: 1px;
+  }
+  
+  .block-number {
+    font-size: 1.1rem;
+  }
+  
+  .block-connector {
+    height: 1.5rem;
+    top: -1.5rem;
+  }
+}
+
+/* Pulse animation for newest block */
+.block-node:first-child .block-card {
+  animation: pulse 2s ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    border-color: var(--bs-gray-300);
+  }
+  50% {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.25);
+  }
+}
+
+[data-bs-theme="dark"] .block-node:first-child .block-card {
+  animation: pulseDark 2s ease-in-out;
+}
+
+@keyframes pulseDark {
+  0%, 100% {
+    border-color: var(--bs-gray-700);
+  }
+  50% {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.25);
+  }
+}

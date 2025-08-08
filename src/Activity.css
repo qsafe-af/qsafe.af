@@ -1,0 +1,93 @@
+/* Activity component layout styles */
+
+/* Ensure equal height cards in the row */
+.row > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
+}
+
+.row > [class*="col-"] > .card {
+  flex: 1;
+}
+
+/* Add spacing between columns */
+@media (min-width: 992px) {
+  .row > .col-lg-6:first-child {
+    padding-right: 0.75rem;
+  }
+  
+  .row > .col-lg-6:last-child {
+    padding-left: 0.75rem;
+  }
+}
+
+/* Blocks container within the card should be scrollable */
+.blocks-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.5rem;
+}
+
+/* Custom scrollbar for blocks container */
+.blocks-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.blocks-container::-webkit-scrollbar-track {
+  background: var(--bs-gray-200);
+  border-radius: 3px;
+}
+
+.blocks-container::-webkit-scrollbar-thumb {
+  background: var(--bs-gray-500);
+  border-radius: 3px;
+}
+
+.blocks-container::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-gray-600);
+}
+
+/* Dark theme scrollbar */
+[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-track {
+  background: var(--bs-gray-800);
+}
+
+[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-thumb {
+  background: var(--bs-gray-600);
+}
+
+[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-gray-500);
+}
+
+/* Mobile responsive - stack columns */
+@media (max-width: 991px) {
+  .row > [class*="col-"] > .card {
+    margin-bottom: 1rem;
+  }
+  
+  .blocks-container {
+    max-height: 400px;
+  }
+}
+
+/* Ensure minimum height for events card to match blocks */
+@media (min-width: 992px) {
+  .row > .col-lg-6:last-child > .card {
+    min-height: 400px;
+  }
+}
+
+/* Header alignment */
+.card-header h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Smooth transitions for loading states */
+.blocks-container > *,
+.card-body > p.text-muted,
+.card-body > .alert {
+  transition: opacity 0.3s ease;
+}

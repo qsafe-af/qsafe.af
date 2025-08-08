@@ -1,0 +1,52 @@
+/* Remove underlines from all breadcrumb links */
+.breadcrumb a {
+  text-decoration: none;
+}
+
+/* Breadcrumb dropdown styling */
+.breadcrumb .dropdown-toggle {
+  color: var(--bs-breadcrumb-item-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.breadcrumb .dropdown-toggle:hover {
+  color: var(--bs-breadcrumb-item-active-color);
+  text-decoration: none;
+}
+
+.breadcrumb .dropdown-toggle::after {
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+/* Remove default Bootstrap dropdown caret for a cleaner look */
+.breadcrumb .dropdown-toggle::after {
+  font-size: 0.875em;
+}
+
+/* Dropdown menu positioning in breadcrumb */
+.breadcrumb .dropdown-menu {
+  min-width: 10rem;
+}
+
+/* Fix alignment of dropdown within breadcrumb item */
+.breadcrumb-item .dropdown {
+  display: inline;
+}
+
+/* Dark theme support */
+[data-bs-theme="dark"] .breadcrumb .dropdown-toggle {
+  color: var(--bs-breadcrumb-item-color);
+}
+
+[data-bs-theme="dark"] .breadcrumb .dropdown-toggle:hover {
+  color: var(--bs-breadcrumb-item-active-color);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 576px) {
+  .breadcrumb .dropdown-menu {
+    min-width: 8rem;
+  }
+}
