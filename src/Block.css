@@ -179,24 +179,118 @@
   border-top-color: var(--bs-gray-700);
 }
 
-.events-preview {
-  margin-top: 0.25rem;
+/* Events header with expand/collapse */
+.events-header {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
 }
 
-.event-item {
-  margin-bottom: 0.25rem;
+.events-header:hover {
+  background-color: var(--bs-gray-100);
 }
 
-.event-item .badge {
+[data-bs-theme="dark"] .events-header:hover {
+  background-color: var(--bs-gray-800);
+}
+
+.events-header i {
+  transition: transform 0.2s ease;
+}
+
+/* Event preview badges */
+.events-preview-badges .badge {
   font-size: 0.7rem;
   font-weight: normal;
   padding: 0.2rem 0.4rem;
 }
 
+/* Expanded events details */
+.events-details {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.event-detail-item {
+  background-color: var(--bs-gray-100);
+  border-radius: 0.375rem;
+  border: 1px solid var(--bs-gray-200);
+  transition: all 0.2s ease;
+}
+
+[data-bs-theme="dark"] .event-detail-item {
+  background-color: var(--bs-gray-800);
+  border-color: var(--bs-gray-700);
+}
+
+.event-detail-item:hover {
+  border-color: var(--bs-primary);
+}
+
+/* Event data formatting */
+.event-data {
+  border-top: 1px solid var(--bs-gray-300);
+  padding-top: 0.5rem;
+}
+
+[data-bs-theme="dark"] .event-data {
+  border-top-color: var(--bs-gray-700);
+}
+
+.event-data pre {
+  background-color: var(--bs-gray-900);
+  color: var(--bs-gray-100);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+[data-bs-theme="dark"] .event-data pre {
+  background-color: var(--bs-black);
+  color: var(--bs-gray-300);
+}
+
+/* Custom scrollbar for events details */
+.events-details::-webkit-scrollbar {
+  width: 4px;
+}
+
+.events-details::-webkit-scrollbar-track {
+  background: var(--bs-gray-200);
+  border-radius: 2px;
+}
+
+.events-details::-webkit-scrollbar-thumb {
+  background: var(--bs-gray-500);
+  border-radius: 2px;
+}
+
+[data-bs-theme="dark"] .events-details::-webkit-scrollbar-track {
+  background: var(--bs-gray-800);
+}
+
+[data-bs-theme="dark"] .events-details::-webkit-scrollbar-thumb {
+  background: var(--bs-gray-600);
+}
+
 /* Compact event display for mobile */
 @media (max-width: 768px) {
-  .event-item .badge {
+  .events-preview-badges .badge,
+  .event-detail-item .badge {
     font-size: 0.65rem;
     padding: 0.15rem 0.3rem;
+  }
+  
+  .events-details {
+    max-height: 200px;
+  }
+  
+  .event-data pre {
+    font-size: 0.7rem;
   }
 }
