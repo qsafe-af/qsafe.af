@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import { Container, Alert, Card, Badge, Spinner, Row, Col } from "react-bootstrap";
+import { Container, Alert, Card, Badge, Spinner } from "react-bootstrap";
 import { getChain, normalizeToGenesis } from "./chains";
 import Blocks from "./Blocks";
-import Events from "./Events";
-import type { BlockHeader, ConnectionStatus } from "./types";
+import { QuantumDecoder, isQuantumChain } from "./decoder";
+import QuantumBadge from "./QuantumBadge";
+import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
 import "./Activity.css";
 
 const Activity: React.FC = () => {
@@ -52,6 +53,9 @@ const Activity: React.FC = () => {
       ws.send(JSON.stringify(subscribeMessage));
     };
 
+    // Track pending requests
+    const pendingRequests = new Map<number, { type: string, data: any }>();
+
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -60,6 +64,72 @@ const Activity: React.FC = () => {
         if (data.id === 1 && data.result) {
           subscriptionIdRef.current = data.result;
           console.log("Subscribed with ID:", data.result);
+        }
+        
+        // Handle responses to our requests
+        if (data.id && data.result !== undefined && pendingRequests.has(data.id)) {
+          const request = pendingRequests.get(data.id);
+          pendingRequests.delete(data.id);
+          
+          if (request?.type === 'getBlockHash') {
+            const { blockNumber } = request.data;
+            const actualHash = data.result;
+            
+            // Update the block with the actual hash
+            setBlocks(prevBlocks => 
+              prevBlocks.map(block => 
+                block.number === blockNumber 
+                  ? { ...block, hash: actualHash }
+                  : block
+              )
+            );
+            
+            // Now fetch events for this block
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              const getEventsMessage = {
+                id: Date.now() + Math.random(),
+                jsonrpc: "2.0",
+                method: "state_getStorage",
+                params: [
+                  "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7", // system.events() storage key
+                  actualHash
+                ]
+              };
+              pendingRequests.set(getEventsMessage.id, { 
+                type: 'getEvents', 
+                data: { blockNumber, blockHash: actualHash } 
+              });
+              wsRef.current.send(JSON.stringify(getEventsMessage));
+            }
+          } else if (request?.type === 'getEvents') {
+            const { blockNumber } = request.data;
+            let events: SubstrateEvent[] = [];
+            
+            try {
+              // Check if this is a quantum-resistant chain
+              if (chain && isQuantumChain(chain.name)) {
+                // Use quantum decoder for quantus and resonance chains
+                const quantumEvents = QuantumDecoder.decodeEventsFromHex(data.result);
+                events = QuantumDecoder.toSubstrateEvents(quantumEvents);
+                console.log(`Decoded ${events.length} quantum events for block ${blockNumber}`);
+              } else {
+                // For other chains, we'd use standard SCALE decoding
+                console.log(`Events for block ${blockNumber} (standard chain):`, data.result);
+                // TODO: Implement standard SCALE decoder
+              }
+            } catch (error) {
+              console.error(`Error decoding events for block ${blockNumber}:`, error);
+            }
+            
+            // Update block with decoded events
+            setBlocks(prevBlocks => 
+              prevBlocks.map(block => 
+                block.number === blockNumber 
+                  ? { ...block, events }
+                  : block
+              )
+            );
+          }
         }
         
         // Handle new block headers
@@ -77,51 +147,25 @@ const Activity: React.FC = () => {
           const newBlock: BlockHeader = {
             number: blockNumber,
             hash: blockHash,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            events: [] // Initialize with empty events
           };
           
           setBlocks(prevBlocks => [newBlock, ...prevBlocks].slice(0, 20)); // Keep last 20 blocks
           
-          // Optional: Fetch the actual block hash
+          // Fetch the actual block hash
           if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             const getBlockHashMessage = {
-              id: Date.now(),
+              id: Date.now() + Math.random(),
               jsonrpc: "2.0",
               method: "chain_getBlockHash",
               params: [header.number]
             };
+            pendingRequests.set(getBlockHashMessage.id, { 
+              type: 'getBlockHash', 
+              data: { blockNumber } 
+            });
             wsRef.current.send(JSON.stringify(getBlockHashMessage));
-            
-            // Store the request ID to match the response
-            const requestId = getBlockHashMessage.id;
-            
-            // Update the message handler to handle the block hash response
-            const originalOnMessage = wsRef.current.onmessage;
-            wsRef.current.onmessage = (event) => {
-              try {
-                const response = JSON.parse(event.data);
-                if (response.id === requestId && response.result) {
-                  // Update the block with the actual hash
-                  setBlocks(prevBlocks => 
-                    prevBlocks.map(block => 
-                      block.number === blockNumber 
-                        ? { ...block, hash: response.result }
-                        : block
-                    )
-                  );
-                  // Restore original handler
-                  if (wsRef.current) {
-                    wsRef.current.onmessage = originalOnMessage;
-                  }
-                }
-              } catch (error) {
-                console.error("Error parsing block hash response:", error);
-              }
-              // Call original handler
-              if (originalOnMessage && wsRef.current) {
-                originalOnMessage.call(wsRef.current, event);
-              }
-            };
           }
         }
       } catch (error) {
@@ -197,6 +241,9 @@ const Activity: React.FC = () => {
           <div className="d-flex justify-content-between align-items-center">
             <h3 className="h5 mb-0">
               {chain ? chain.displayName : "Unknown Chain"}
+              {chain && isQuantumChain(chain.name) && (
+                <QuantumBadge variant="inline" />
+              )}
             </h3>
             {chain?.endpoints && chain.endpoints.length > 0 && getStatusBadge()}
           </div>
@@ -214,34 +261,33 @@ const Activity: React.FC = () => {
                 <code className="text-break">{selectedEndpoint}</code>
               </>
             )}
+            {chain && isQuantumChain(chain.name) && (
+              <>
+                <br />
+                <strong>Cryptography:</strong> ML-DSA (Dilithium) signatures, Poseidon hashing
+              </>
+            )}
           </div>
         </Card.Body>
       </Card>
 
-      <Row>
-        <Col lg={6}>
-          <Card className="mb-4">
-            <Card.Header>
-              <div className="d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Recent Blocks</h5>
-                {connectionStatus === "connecting" && (
-                  <Spinner animation="border" size="sm" />
-                )}
-              </div>
-            </Card.Header>
-            <Card.Body>
-              <Blocks 
-                blocks={blocks}
-                connectionStatus={connectionStatus}
-                hasEndpoints={!!chain?.endpoints && chain.endpoints.length > 0}
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col lg={6}>
-          <Events />
-        </Col>
-      </Row>
+      <Card className="mb-4">
+        <Card.Header>
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">Recent Activity</h5>
+            {connectionStatus === "connecting" && (
+              <Spinner animation="border" size="sm" />
+            )}
+          </div>
+        </Card.Header>
+        <Card.Body>
+          <Blocks 
+            blocks={blocks}
+            connectionStatus={connectionStatus}
+            hasEndpoints={!!chain?.endpoints && chain.endpoints.length > 0}
+          />
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

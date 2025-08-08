@@ -4,6 +4,21 @@ export interface BlockHeader {
   number: string;
   hash: string;
   timestamp?: number;
+  events?: SubstrateEvent[];
+}
+
+export interface SubstrateEvent {
+  phase: {
+    applyExtrinsic?: number;
+    finalization?: boolean;
+    initialization?: boolean;
+  };
+  event: {
+    section: string;
+    method: string;
+    data: unknown[];
+  };
+  topics: string[];
 }
 
 export interface Chain {

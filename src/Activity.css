@@ -1,27 +1,6 @@
 /* Activity component layout styles */
 
-/* Ensure equal height cards in the row */
-.row > [class*="col-"] {
-  display: flex;
-  flex-direction: column;
-}
-
-.row > [class*="col-"] > .card {
-  flex: 1;
-}
-
-/* Add spacing between columns */
-@media (min-width: 992px) {
-  .row > .col-lg-6:first-child {
-    padding-right: 0.75rem;
-  }
-  
-  .row > .col-lg-6:last-child {
-    padding-left: 0.75rem;
-  }
-}
-
-/* Blocks container within the card should be scrollable */
+/* Blocks container should be scrollable */
 .blocks-container {
   max-height: 600px;
   overflow-y: auto;
@@ -61,21 +40,10 @@
   background: var(--bs-gray-500);
 }
 
-/* Mobile responsive - stack columns */
-@media (max-width: 991px) {
-  .row > [class*="col-"] > .card {
-    margin-bottom: 1rem;
-  }
-  
+/* Mobile responsive - reduce max height */
+@media (max-width: 768px) {
   .blocks-container {
     max-height: 400px;
-  }
-}
-
-/* Ensure minimum height for events card to match blocks */
-@media (min-width: 992px) {
-  .row > .col-lg-6:last-child > .card {
-    min-height: 400px;
   }
 }
 
@@ -90,4 +58,10 @@
 .card-body > p.text-muted,
 .card-body > .alert {
   transition: opacity 0.3s ease;
+}
+
+/* Loading spinner alignment */
+.card-header .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import './Block.css';
-import type { BlockHeader } from './types';
+import type { BlockHeader, SubstrateEvent } from './types';
 
 interface BlockProps {
   block: BlockHeader;
@@ -42,6 +42,23 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
               {truncateHash(block.hash)}
             </div>
           </div>
+          {block.events && block.events.length > 0 && (
+            <div className="block-events mt-2">
+              <small className="text-muted">Events: {block.events.length}</small>
+              <div className="events-preview">
+                {block.events.slice(0, 3).map((event, idx) => (
+                  <div key={idx} className="event-item small">
+                    <span className="badge bg-secondary me-1">
+                      {event.event.section}.{event.event.method}
+                    </span>
+                  </div>
+                ))}
+                {block.events.length > 3 && (
+                  <small className="text-muted">+{block.events.length - 3} more</small>
+                )}
+              </div>
+            </div>
+          )}
           <div className="block-connector"></div>
         </Card.Body>
       </Card>

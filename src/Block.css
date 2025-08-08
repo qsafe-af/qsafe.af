@@ -168,3 +168,35 @@
     box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.25);
   }
 }
+
+/* Events section styling */
+.block-events {
+  border-top: 1px solid var(--bs-gray-200);
+  padding-top: 0.5rem;
+}
+
+[data-bs-theme="dark"] .block-events {
+  border-top-color: var(--bs-gray-700);
+}
+
+.events-preview {
+  margin-top: 0.25rem;
+}
+
+.event-item {
+  margin-bottom: 0.25rem;
+}
+
+.event-item .badge {
+  font-size: 0.7rem;
+  font-weight: normal;
+  padding: 0.2rem 0.4rem;
+}
+
+/* Compact event display for mobile */
+@media (max-width: 768px) {
+  .event-item .badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
+  }
+}
