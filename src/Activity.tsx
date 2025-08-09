@@ -6,16 +6,11 @@ import {
   Card,
   Badge,
   Spinner,
-  Form,
-  Button,
-  Row,
-  Col,
 } from "react-bootstrap";
 import { getChain, normalizeToGenesis } from "./chains";
-import Events from "./Events";
-import Blocks from "./Blocks";
+import Block from "./Block";
+import BlockEvents from "./BlockEvents";
 import { isQuantumChain } from "./decoder";
-import { Link } from "react-router-dom";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
 import QuantumBadge from "./QuantumBadge";
 import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
@@ -28,8 +23,6 @@ const Activity: React.FC = () => {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
-  const [manualBlockNumber, setManualBlockNumber] = useState<string>("");
-  const [manualQueryResult, setManualQueryResult] = useState<any>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const subscriptionIdRef = useRef<string | null>(null);
 
@@ -568,132 +561,7 @@ const Activity: React.FC = () => {
     return String(value);
   };
 
-  const handleManualBlockQuery = () => {
-    if (
-      !manualBlockNumber ||
-      !wsRef.current ||
-      wsRef.current.readyState !== WebSocket.OPEN
-    ) {
-      return;
-    }
 
-    const blockNum = parseInt(manualBlockNumber);
-    if (isNaN(blockNum)) {
-      console.error("Invalid block number");
-      return;
-    }
-
-    console.log(`Manually querying block ${blockNum} for events...`);
-    setManualQueryResult({ loading: true, blockNumber: blockNum });
-
-    // First get the block hash
-    const requestId = Math.floor(Math.random() * 1000000);
-    const getBlockHashMessage = {
-      id: requestId,
-      jsonrpc: "2.0",
-      method: "chain_getBlockHash",
-      params: [blockNum],
-    };
-
-    // Track this as a manual query
-    const pendingRequests = new Map<number, { type: string; data: any }>();
-    pendingRequests.set(requestId, {
-      type: "manualBlockHash",
-      data: { blockNumber: blockNum.toString() },
-    });
-
-    // Add custom handler for manual queries
-    const originalOnMessage = wsRef.current.onmessage;
-    wsRef.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        if (data.id === requestId && data.result) {
-          const blockHash = data.result;
-          console.log(
-            `Manual query: Got hash ${blockHash} for block ${blockNum}`,
-          );
-
-          // Now get events for this block
-          const eventsRequestId = Math.floor(Math.random() * 1000000);
-          const getEventsMessage = {
-            id: eventsRequestId,
-            jsonrpc: "2.0",
-            method: "state_getStorage",
-            params: [
-              "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
-              blockHash,
-            ],
-          };
-
-          wsRef.current?.send(JSON.stringify(getEventsMessage));
-
-          // Handle events response
-          const eventsHandler = (eventsEvent: MessageEvent) => {
-            try {
-              const eventsData = JSON.parse(eventsEvent.data);
-              if (eventsData.id === eventsRequestId) {
-                console.log(
-                  `Manual query: Events result for block ${blockNum}:`,
-                  eventsData.result,
-                );
-                let decodedEvents: SubstrateEvent[] = [];
-                let hasEvents = false;
-                
-                if (eventsData.result && eventsData.result !== "0x" && eventsData.result !== null) {
-                  hasEvents = true;
-                  try {
-                    decodedEvents = decodeEnhancedEvents(eventsData.result);
-                    console.log(`Decoded ${decodedEvents.length} events for manual query`);
-                  } catch (decodeError) {
-                    console.error("Failed to decode events for manual query:", decodeError);
-                  }
-                }
-                
-                setManualQueryResult({
-                  loading: false,
-                  blockNumber: blockNum,
-                  blockHash: blockHash,
-                  eventsHex: eventsData.result,
-                  events: decodedEvents,
-                  hasEvents,
-                });
-
-                // Restore original handler
-                if (wsRef.current) {
-                  wsRef.current.onmessage = originalOnMessage;
-                }
-              }
-            } catch (error) {
-              console.error("Error in manual events query:", error);
-            }
-
-            // Continue with original handler
-            if (originalOnMessage) {
-              if (wsRef.current) {
-                originalOnMessage.call(wsRef.current, eventsEvent);
-              }
-            }
-          };
-
-          if (wsRef.current) {
-            wsRef.current.onmessage = eventsHandler;
-          }
-        }
-      } catch (error) {
-        console.error("Error in manual block query:", error);
-      }
-
-      // Continue with original handler
-      if (originalOnMessage) {
-        if (wsRef.current) {
-          originalOnMessage.call(wsRef.current, event);
-        }
-      }
-    };
-
-    wsRef.current.send(JSON.stringify(getBlockHashMessage));
-  };
 
   if (!chainId) {
     return <Navigate to="/chains/resonance/activity" />;
@@ -765,123 +633,6 @@ const Activity: React.FC = () => {
         </Card.Body>
       </Card>
 
-      {chain && isQuantumChain(chain.name) && (
-        <Card className="mb-4">
-          <Card.Header>
-            <h5 className="mb-0">Debug: Manual Block Query</h5>
-          </Card.Header>
-          <Card.Body>
-            <Form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleManualBlockQuery();
-              }}
-            >
-              <Row>
-                <Col md={8}>
-                  <Form.Group>
-                    <Form.Label>Block Number</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter block number (e.g., 113380)"
-                      value={manualBlockNumber}
-                      onChange={(e) => setManualBlockNumber(e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={4} className="d-flex align-items-end">
-                  <Button
-                    variant="primary"
-                    onClick={handleManualBlockQuery}
-                    disabled={connectionStatus !== "connected"}
-                  >
-                    Query Events
-                  </Button>
-                </Col>
-              </Row>
-            </Form>
-
-            {manualQueryResult && (
-              <div className="mt-3">
-                {manualQueryResult.loading ? (
-                  <div>
-                    <Spinner animation="border" size="sm" /> Querying block{" "}
-                    {manualQueryResult.blockNumber}...
-                  </div>
-                ) : (
-                  <Alert
-                    variant={manualQueryResult.hasEvents ? "info" : "warning"}
-                  >
-                    <strong>Block {manualQueryResult.blockNumber}</strong>
-                    <br />
-                    <small className="text-muted">
-                      Hash: {manualQueryResult.blockHash}
-                    </small>
-                    <br />
-                    <strong>Events:</strong>{" "}
-                    {manualQueryResult.hasEvents ? `${manualQueryResult.events?.length || 0} found` : "None"}
-                    <br />
-                    <div className="mt-2">
-                      <Link 
-                        to={`/chains/${chainId}/block/${manualQueryResult.blockNumber}`}
-                        className="btn btn-sm btn-outline-primary"
-                      >
-                        <i className="bi bi-box-arrow-up-right me-1"></i>
-                        View Block Details
-                      </Link>
-                    </div>
-                    {manualQueryResult.events && manualQueryResult.events.length > 0 && (
-                      <div className="mt-3">
-                        {manualQueryResult.events.map((event: SubstrateEvent, idx: number) => (
-                          <div key={idx} className={`mb-3 p-2 ${themeClasses.bg.tertiary} rounded`}>
-                            <Badge bg={
-                              event.event.section === 'system' ? 'primary' :
-                              event.event.section === 'balances' ? 'success' :
-                              event.event.section === 'utility' ? 'secondary' : 'secondary'
-                            }>
-                              {event.event.section}.{event.event.method}
-                            </Badge>
-                            {event.phase.applyExtrinsic !== undefined && 
-                             !(event.event.section === 'system' && event.event.method === 'extrinsicsuccess' && event.phase.applyExtrinsic === 0) && (
-                              <small className="text-muted ms-2">
-                                Extrinsic #{event.phase.applyExtrinsic}
-                              </small>
-                            )}
-                            {event.phase.initialization && (
-                              <small className="text-muted ms-2">
-                                Initialization
-                              </small>
-                            )}
-                            {event.event.data && event.event.data.length > 0 && (
-                              <div className="mt-2 ms-3">
-                                {formatEventDataForDisplay(event.event.data)}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {manualQueryResult.eventsHex && (
-                      <details className="mt-3">
-                        <summary className="text-muted small">
-                          <i className="bi bi-chevron-right"></i> View raw hex data
-                        </summary>
-                        <pre
-                          className="mt-2 small"
-                          style={{ maxHeight: "200px", overflow: "auto" }}
-                        >
-                          {manualQueryResult.eventsHex}
-                        </pre>
-                      </details>
-                    )}
-                  </Alert>
-                )}
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-      )}
-
       <Card className="mb-4">
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
@@ -892,22 +643,28 @@ const Activity: React.FC = () => {
           </div>
         </Card.Header>
         <Card.Body>
-          <Row>
-            <Col md={6}>
-              <Blocks
-                blocks={blocks}
-                connectionStatus={connectionStatus}
-                hasEndpoints={!!chain?.endpoints && chain.endpoints.length > 0}
-              />
-            </Col>
-            <Col md={6}>
-              <Events
-                blocks={blocks}
-                connectionStatus={connectionStatus}
-                hasEndpoints={!!chain?.endpoints && chain.endpoints.length > 0}
-              />
-            </Col>
-          </Row>
+          {(!chain?.endpoints || chain.endpoints.length === 0) ? (
+            <Alert variant="info">No endpoints configured for this chain.</Alert>
+          ) : blocks.length === 0 ? (
+            <p className="text-muted">
+              {connectionStatus === "connected"
+                ? "Waiting for new blocks..."
+                : "Connecting to blockchain..."}
+            </p>
+          ) : (
+            <div className="activity-blocks-events">
+              {blocks.map((block, index) => (
+                <div key={`${block.number}-${index}`} className="block-event-row">
+                  <div className="block-column">
+                    <Block block={block} index={index} />
+                  </div>
+                  <div className="event-column">
+                    <BlockEvents block={block} index={index} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card.Body>
       </Card>
     </Container>

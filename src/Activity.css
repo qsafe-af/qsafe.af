@@ -1,67 +1,202 @@
 /* Activity component layout styles */
 
-/* Blocks container should be scrollable */
-.blocks-container {
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 0.5rem;
+/* Container for synchronized blocks and events display */
+.activity-sync-container {
+  position: relative;
 }
 
-/* Custom scrollbar for blocks container */
-.blocks-container::-webkit-scrollbar {
-  width: 6px;
+/* Wrapper for each block-event pair */
+.block-event-pair {
+  position: relative;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
 }
 
-.blocks-container::-webkit-scrollbar-track {
-  background: var(--bs-gray-200);
-  border-radius: 3px;
+/* Ensure blocks container doesn't have its own spacing */
+.blocks-container,
+.events-container {
+  display: contents; /* This makes children behave as direct children of grid */
 }
 
-.blocks-container::-webkit-scrollbar-thumb {
-  background: var(--bs-gray-500);
-  border-radius: 3px;
+/* Individual block and event wrappers for alignment */
+.block-wrapper,
+.event-wrapper {
+  position: relative;
 }
 
-.blocks-container::-webkit-scrollbar-thumb:hover {
+/* Horizontal connector between block and event */
+.horizontal-connector {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: calc(2rem + 2px); /* Gap width + border adjustments */
+  height: 2px;
+  background: linear-gradient(to right, var(--bs-gray-400), var(--bs-gray-400));
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Dot at the start of connector (block side) */
+.horizontal-connector::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  border: 2px solid var(--bs-body-bg);
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+/* Arrow pointing right at the end of connector */
+.horizontal-connector::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 8px solid var(--bs-gray-400);
+  transform: translateY(-50%);
+}
+
+/* Alternative: Use flex layout for better control */
+.activity-blocks-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.block-event-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  position: relative;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.block-column,
+.event-column {
+  position: relative;
+}
+
+/* Ensure cards allow overflow for connectors */
+.block-column .card,
+.event-column .card {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Connector from block card to event card */
+.block-column .card::after {
+  content: '';
+  position: absolute;
+  top: 65px; /* Position at roughly the block hash area */
+  left: 100%; /* Start from right edge of card */
+  width: calc(3rem - 8px); /* Span the gap between columns minus arrow */
+  height: 2px;
+  background: var(--bs-gray-400);
+  z-index: 10;
+}
+
+/* Dot at the start of connector (block side) */
+.block-column .card::before {
+  content: '';
+  position: absolute;
+  top: 65px;
+  left: calc(100% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  border: 2px solid var(--bs-body-bg);
+  transform: translateY(-50%);
+  z-index: 11;
+}
+
+/* Arrow pointing to event card */
+.event-column .card::before {
+  content: '';
+  position: absolute;
+  top: 65px;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 8px solid var(--bs-gray-400);
+  transform: translateY(-50%);
+  z-index: 11;
+}
+
+/* Dark theme adjustments */
+[data-bs-theme="dark"] .block-column .card::after {
   background: var(--bs-gray-600);
 }
 
-/* Dark theme scrollbar */
-[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-track {
-  background: var(--bs-gray-800);
+[data-bs-theme="dark"] .event-column .card::before {
+  border-left-color: var(--bs-gray-600);
 }
 
-[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-thumb {
-  background: var(--bs-gray-600);
+[data-bs-theme="dark"] .block-column .card::before {
+  border-color: var(--bs-gray-900);
 }
 
-[data-bs-theme="dark"] .blocks-container::-webkit-scrollbar-thumb:hover {
-  background: var(--bs-gray-500);
-}
-
-/* Mobile responsive - reduce max height */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .blocks-container {
-    max-height: 400px;
+  /* Stack vertically on mobile */
+  .block-event-pair {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .block-event-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Hide connectors on mobile */
+  .block-column .card::before,
+  .block-column .card::after,
+  .event-column .card::before {
+    display: none;
   }
 }
 
-/* Header alignment */
-.card-header h5 {
-  font-size: 1.1rem;
-  font-weight: 600;
+/* Ensure proper spacing for alignment */
+.block-spacer {
+  height: var(--spacer-height, 0);
+  transition: height 0.3s ease;
 }
 
-/* Smooth transitions for loading states */
-.blocks-container > *,
-.card-body > p.text-muted,
-.card-body > .alert {
-  transition: opacity 0.3s ease;
+/* Manual query section */
+.manual-query-section {
+  margin-top: 2rem;
 }
 
-/* Loading spinner alignment */
-.card-header .spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
+/* Events data formatting */
+.event-data-display {
+  font-size: 0.875rem;
+  margin-left: 1rem;
+}
+
+.event-data-display pre {
+  margin: 0;
+  padding: 0.5rem;
+  background-color: var(--bs-gray-100);
+  border-radius: 0.25rem;
+  overflow-x: auto;
+}
+
+[data-bs-theme="dark"] .event-data-display pre {
+  background-color: var(--bs-gray-800);
 }

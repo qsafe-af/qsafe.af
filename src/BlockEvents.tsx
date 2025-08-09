@@ -201,7 +201,6 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
               </div>
             </div>
           )}
-          <div className="block-connector"></div>
         </Card.Body>
       </Card>
     </div>

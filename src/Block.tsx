@@ -12,11 +12,7 @@ interface BlockProps {
 const Block: React.FC<BlockProps> = ({ block, index }) => {
   const { chainId } = useParams<{ chainId: string }>();
 
-  const truncateHash = (hash: string) => {
-    if (hash.startsWith("pending_")) return "Fetching hash...";
-    if (hash.length <= 16) return hash;
-    return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
-  };
+
 
   const getAnimationDelay = () => {
     // Stagger animations for new blocks
@@ -41,10 +37,10 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
             )}
           </div>
           <div className="block-hash">
-            <small className="text-muted">Hash:</small>
+            <small className="text-muted">hash:</small>
             <div
-              className={`font-monospace small text-truncate ${block.hash.startsWith("pending_") ? "text-warning" : ""}`}
-              title={block.hash}
+              className={`font-monospace text-break ${block.hash.startsWith("pending_") ? "text-warning" : "text-muted"}`}
+              style={{ fontSize: "0.875rem" }}
             >
               {block.hash.startsWith("pending_") ? (
                 <>
@@ -52,10 +48,10 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
                     className="spinner-border spinner-border-sm me-1"
                     role="status"
                   ></span>
-                  {truncateHash(block.hash)}
+                  Fetching hash...
                 </>
               ) : (
-                truncateHash(block.hash)
+                block.hash
               )}
             </div>
           </div>

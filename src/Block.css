@@ -1,9 +1,13 @@
 /* Block node styling for DAG visualization */
 .block-node {
   position: relative;
-  margin-bottom: 2rem;
   animation: slideIn 0.3s ease-out forwards;
   opacity: 0;
+}
+
+/* Add margin only when inside blocks-container (vertical layout) */
+.blocks-container .block-node {
+  margin-bottom: 2rem;
 }
 
 @keyframes slideIn {
@@ -69,7 +73,9 @@
 }
 
 /* First block shouldn't have a connector */
-.block-node:first-child .block-connector {
+.block-node:first-child .block-connector,
+/* Hide vertical connectors when in horizontal layout */
+.block-event-row .block-connector {
   display: none;
 }
 
@@ -177,12 +183,9 @@
 
 /* Events section styling */
 .block-events {
-  border-top: 1px solid var(--bs-gray-200);
-  padding-top: 0.5rem;
 }
 
 [data-bs-theme="dark"] .block-events {
-  border-top-color: var(--bs-gray-700);
 }
 
 /* Events header */

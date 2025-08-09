@@ -4,23 +4,33 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Breadcrumb from "react-bootstrap/Breadcrumb";
-import Dropdown from "react-bootstrap/Dropdown";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Logo from "./assets/res.svg";
 import ThemeToggle from "./ThemeToggle";
-import { getAllChains } from "./chains";
+import CaseToggle from "./CaseToggle";
+import { getAllChains, getChain } from "./chains";
 import "./Header.css";
+import "./CaseToggle.css";
 
 const Header = () => {
   const loc = useLocation();
-  const navigate = useNavigate();
   const { pathname } = loc;
   const segments = pathname.split("/").filter((c) => !!c);
 
   // Transform segments to show friendly names for chains
   const crumbs = segments.map((segment, i) => {
+    let displayName = segment;
+    
+    // If previous segment is "chains", try to get chain display name
+    if (i > 0 && segments[i - 1] === 'chains') {
+      const chain = getChain(segment);
+      if (chain) {
+        displayName = chain.displayName;
+      }
+    }
+    
     return {
-      name: segment,
+      name: displayName,
       path: `/${segments.slice(0, i + 1).join("/")}`,
     };
   });
@@ -45,6 +55,11 @@ const Header = () => {
               <i className="bi bi-github"></i>
             </Nav.Link>
             <NavDropdown title="chains" id="basic-nav-dropdown">
+              <NavDropdown.Item href="/chains">
+                <i className="bi bi-list me-2"></i>
+                View All Chains
+              </NavDropdown.Item>
+              {chains.length > 0 && <NavDropdown.Divider />}
               {chains.map((chain) => (
                 <NavDropdown.Item
                   key={chain.name}
@@ -61,6 +76,7 @@ const Header = () => {
             </NavDropdown>
           </Nav>
           <Nav className="ms-auto">
+            <CaseToggle />
             <ThemeToggle />
           </Nav>
         </Navbar.Collapse>
@@ -68,35 +84,6 @@ const Header = () => {
       <Breadcrumb>
         {!!crumbs && !!crumbs.length
           ? crumbs.map((crumb, cI) => {
-              if (cI === 0 && crumb.name === "chains") {
-                // Show dropdown for chains
-                return (
-                  <Breadcrumb.Item key={cI}>
-                    <Dropdown as="span" className="d-inline">
-                      <Dropdown.Toggle
-                        as="a"
-                        className="text-decoration-none cursor-pointer"
-                        style={{ cursor: "pointer" }}
-                      >
-                        chains
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        {chains.map((chain) => (
-                          <Dropdown.Item
-                            key={chain.name}
-                            onClick={() =>
-                              navigate(`/chains/${chain.name}/activity`)
-                            }
-                          >
-                            {chain.name}
-                          </Dropdown.Item>
-                        ))}
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Breadcrumb.Item>
-                );
-              }
-
               return crumbs.length === cI + 1 ? (
                 <Breadcrumb.Item key={cI} active>
                   {crumb.name}
