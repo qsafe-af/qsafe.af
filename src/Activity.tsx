@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
 import QuantumBadge from "./QuantumBadge";
 import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
+import { themeClasses } from "./theme-utils";
 import "./Activity.css";
 
 const Activity: React.FC = () => {
@@ -514,7 +515,7 @@ const Activity: React.FC = () => {
           {Object.entries(data).map(([key, value]) => (
             <div key={key} className="d-flex align-items-start">
               <span className="text-info me-2">{formatKey(key)}:</span>
-              <span className="text-light">{formatValue(value)}</span>
+              <span className={themeClasses.text.primary}>{formatValue(value)}</span>
             </div>
           ))}
         </div>
@@ -832,11 +833,11 @@ const Activity: React.FC = () => {
                     {manualQueryResult.events && manualQueryResult.events.length > 0 && (
                       <div className="mt-3">
                         {manualQueryResult.events.map((event: SubstrateEvent, idx: number) => (
-                          <div key={idx} className="mb-3 p-2 bg-dark rounded">
+                          <div key={idx} className={`mb-3 p-2 ${themeClasses.bg.tertiary} rounded`}>
                             <Badge bg={
                               event.event.section === 'system' ? 'primary' :
                               event.event.section === 'balances' ? 'success' :
-                              event.event.section === 'utility' ? 'dark' : 'secondary'
+                              event.event.section === 'utility' ? 'secondary' : 'secondary'
                             }>
                               {event.event.section}.{event.event.method}
                             </Badge>

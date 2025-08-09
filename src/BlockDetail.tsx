@@ -4,6 +4,7 @@ import { Card, Alert, Badge, Spinner, Button } from "react-bootstrap";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
 import { getChain } from "./chains";
 import type { SubstrateEvent, ConnectionStatus } from "./types";
+import { themeClasses } from "./theme-utils";
 
 interface BlockDetailData {
   blockNumber: string;
@@ -71,7 +72,9 @@ const BlockDetail: React.FC = () => {
           {Object.entries(data).map(([key, value]) => (
             <div key={key} className="d-flex align-items-start">
               <span className="text-info me-2">{formatKey(key)}:</span>
-              <span className="text-light">{formatValue(value)}</span>
+              <span className={themeClasses.text.primary}>
+                {formatValue(value)}
+              </span>
             </div>
           ))}
         </div>
@@ -412,7 +415,9 @@ const BlockDetail: React.FC = () => {
         </Button>
       </div>
 
-      <Card className="bg-dark text-light">
+      <Card
+        className={`${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
+      >
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
             <h5 className="mb-0">Block Details - {chain.displayName}</h5>
@@ -476,7 +481,7 @@ const BlockDetail: React.FC = () => {
             <>
               <div className="mb-4">
                 <h6>Block Information</h6>
-                <div className="bg-dark-subtle p-3 rounded">
+                <div className={`${themeClasses.bg.subtle} p-3 rounded`}>
                   <div className="mb-2">
                     <strong>Block Number:</strong> {blockData.blockNumber}
                   </div>
@@ -503,7 +508,7 @@ const BlockDetail: React.FC = () => {
                       (event: SubstrateEvent, idx: number) => (
                         <div
                           key={idx}
-                          className="mb-3 p-3 bg-dark-subtle rounded"
+                          className={`mb-3 p-3 ${themeClasses.bg.subtle} rounded`}
                         >
                           <div className="d-flex align-items-start justify-content-between">
                             <div>
@@ -554,7 +559,7 @@ const BlockDetail: React.FC = () => {
                 <div className="mb-4">
                   <h6>Raw Block (Hex)</h6>
                   <pre
-                    className="mt-2 p-3 bg-dark-subtle"
+                    className={`mt-2 p-3 ${themeClasses.bg.subtle} rounded`}
                     style={{ maxHeight: "300px", overflow: "auto" }}
                   >
                     {blockData.eventsHex}
