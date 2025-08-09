@@ -4,9 +4,7 @@
 import type { SubstrateEvent } from './types';
 
 // Constants for quantum-resistant chains
-const MLDSA_SIGNATURE_LENGTH = 3293; // ML-DSA-87 signature length in bytes
 const POSEIDON_HASH_LENGTH = 32; // Poseidon hash output length
-const MLDSA_PUBLIC_KEY_LENGTH = 2592; // ML-DSA-87 public key length
 
 // Custom types for quantum-resistant chains
 export interface QuantumEvent {
@@ -306,7 +304,8 @@ export class QuantumDecoder {
   // Extrinsic decoding
   decodeExtrinsic(): QuantumExtrinsic {
     // Read extrinsic length (compact encoded)
-    const _length = this.readCompactU32();
+    // Read and skip extrinsic length
+    this.readCompactU32();
 
     // Version byte (should be 0x84 for signed extrinsics)
     const version = this.readU8();
@@ -331,7 +330,8 @@ export class QuantumDecoder {
     const methodIndex = this.readU8();
     
     // For now, we'll store the raw method data
-    const remainingData = this.buffer.slice(this.offset);
+    // For now, we'll store the raw method data
+    // const remainingData = this.buffer.slice(this.offset);
 
     // Calculate Poseidon hash of the extrinsic
     const hash: PoseidonHash = {

@@ -1,15 +1,15 @@
 import React from "react";
 import { Alert } from "react-bootstrap";
-import Block from "./Block";
+import BlockEvents from "./BlockEvents";
 import type { BlockHeader, ConnectionStatus } from "./types";
 
-interface BlocksProps {
+interface EventsProps {
   blocks: BlockHeader[];
   connectionStatus: ConnectionStatus;
   hasEndpoints: boolean;
 }
 
-const Blocks: React.FC<BlocksProps> = ({
+const Events: React.FC<EventsProps> = ({
   blocks,
   connectionStatus,
   hasEndpoints,
@@ -33,10 +33,14 @@ const Blocks: React.FC<BlocksProps> = ({
   return (
     <div className="blocks-container">
       {blocks.map((block, index) => (
-        <Block key={`${block.number}-${index}`} block={block} index={index} />
+        <BlockEvents
+          key={`${block.number}-${index}`}
+          block={block}
+          index={index}
+        />
       ))}
     </div>
   );
 };
 
-export default Blocks;
+export default Events;
