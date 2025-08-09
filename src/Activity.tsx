@@ -404,8 +404,7 @@ const Activity: React.FC = () => {
         if (data.method === "chain_newHead" && data.params) {
           const { result: header } = data.params;
 
-          // Log the full header to see what fields are available
-          console.log(`Full header data for analysis:`, header);
+
 
           // In Substrate chains, the block number is in hex format
           const blockNumber = parseInt(header.number, 16).toString();
@@ -423,6 +422,7 @@ const Activity: React.FC = () => {
             hash: blockHash,
             timestamp: Date.now(),
             events: [], // Initialize with empty events
+            digest: header.digest, // Capture digest from header
           };
 
           setBlocks((prevBlocks) => [newBlock, ...prevBlocks].slice(0, 20)); // Keep last 20 blocks

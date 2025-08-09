@@ -5,6 +5,9 @@ export interface BlockHeader {
   hash: string;
   timestamp?: number;
   events?: SubstrateEvent[];
+  digest?: {
+    logs: string[];
+  };
 }
 
 export interface SubstrateEvent {

@@ -61,6 +61,17 @@
   margin-bottom: 0.25rem;
 }
 
+/* Block author styling */
+.block-author {
+  margin-top: 0.5rem;
+}
+
+.block-author small {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
 /* Connector line to previous block */
 .block-connector {
   position: absolute;
