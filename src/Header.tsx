@@ -16,6 +16,9 @@ const Header = () => {
   const loc = useLocation();
   const { pathname } = loc;
   const segments = pathname.split("/").filter((c) => !!c);
+  
+  // Breadcrumb segments that should not be clickable links
+  const ignoredCrumbs = ['account', 'block'];
 
   // Transform segments to show friendly names for chains
   const crumbs = segments.map((segment, i) => {
@@ -89,9 +92,9 @@ const Header = () => {
                 <Breadcrumb.Item key={cI} active>
                   {crumb.name}
                 </Breadcrumb.Item>
-              ) : crumb.segment === 'block' ? (
-                <Breadcrumb.Item key={cI} active={false}>
-                  {crumb.name}
+              ) : ignoredCrumbs.includes(crumb.segment) ? (
+                <Breadcrumb.Item key={cI}>
+                  <span style={{ color: 'inherit', cursor: 'default' }}>{crumb.name}</span>
                 </Breadcrumb.Item>
               ) : (
                 <Breadcrumb.Item key={cI} href={crumb.path}>

@@ -274,7 +274,7 @@ const Account: React.FC = () => {
     return data.data;
   }, [chain]);
 
-  const processEvents = useCallback((rawEvents: Array<Record<string, any>>, accountHex: string, isTransfer: boolean = false): AccountEvent[] => {
+  const processEvents = useCallback((rawEvents: Array<Record<string, any>>, isTransfer: boolean = false): AccountEvent[] => {
     return rawEvents.map(event => {
       const processed: AccountEvent = {
         id: event.id,
@@ -419,7 +419,7 @@ const Account: React.FC = () => {
         console.log('Transfer Nodes:', transferNodes);
         console.log('Number of transfer nodes:', transferNodes.length);
         
-        processedEvents = processEvents(transferNodes, hexAddr, true);
+        processedEvents = processEvents(transferNodes, true);
         console.log('Processed Transfer Events:', processedEvents);
         
         // Update pagination state
@@ -450,7 +450,7 @@ const Account: React.FC = () => {
         console.log('Balance Event Nodes:', eventNodes);
         console.log('Number of balance event nodes:', eventNodes.length);
         
-        processedEvents = processEvents(eventNodes, hexAddr, false);
+        processedEvents = processEvents(eventNodes, false);
         console.log('Processed Balance Events:', processedEvents);
         
         // Update pagination state

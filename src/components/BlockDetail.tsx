@@ -43,7 +43,6 @@ const BlockDetail: React.FC = () => {
     null,
   );
   const [formattedAuthor, setFormattedAuthor] = useState<string | null>(null);
-  const [authorAddress, setAuthorAddress] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const errorTimeoutRef = useRef<number | null>(null);
 
@@ -217,7 +216,6 @@ const BlockDetail: React.FC = () => {
 
             // Format author address
             if (author) {
-              setAuthorAddress(author);
               formatAuthorAddress(author, chain.endpoints?.[0], chain.genesis)
                 .then((formatted: string) => setFormattedAuthor(formatted))
                 .catch((err: any) => {
