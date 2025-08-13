@@ -1,5 +1,5 @@
 // SS58 address encoding utilities
-import { blake2b } from '@noble/hashes/blake2b';
+import { blake2b as blake2bHash } from '@noble/hashes/blake2b';
 
 // Base58 alphabet used by Bitcoin and SS58
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -28,7 +28,7 @@ function hexToBytes(hex: string): Uint8Array {
  * Blake2b hash with 512-bit output (as used by Substrate)
  */
 function blake2b512(data: Uint8Array): Uint8Array {
-  return blake2b(data, { dkLen: 64 }); // 64 bytes = 512 bits
+  return blake2bHash(data, { dkLen: 64 }); // 64 bytes = 512 bits
 }
 
 /**
@@ -41,9 +41,27 @@ function createSS58Checksum(data: Uint8Array): Uint8Array {
   combined.set(data, prefixBytes.length);
   
   const hash = blake2b512(combined);
-  // SS58 uses the first 1, 2, 4, or 8 bytes depending on address length
-  // For standard 32-byte addresses, we use 2 bytes
-  return hash.slice(0, 2);
+  
+  // SS58 checksum length is based on the length of the entire payload
+  const payloadLength = data.length;
+  let checksumLength: number;
+  
+  // Standard addresses (1 byte prefix + 32 bytes address = 33 bytes) get 2 byte checksum
+  if (payloadLength === 33) {
+    checksumLength = 2;
+  } else if (payloadLength < 34) {
+    checksumLength = 1;
+  } else if (payloadLength < 89) {
+    checksumLength = 2;
+  } else if (payloadLength < 147) {
+    checksumLength = 4;
+  } else if (payloadLength < 258) {
+    checksumLength = 8;
+  } else {
+    checksumLength = 32;
+  }
+  
+  return hash.slice(0, checksumLength);
 }
 
 /**
@@ -52,23 +70,38 @@ function createSS58Checksum(data: Uint8Array): Uint8Array {
 function base58Encode(bytes: Uint8Array): string {
   if (bytes.length === 0) return '';
 
-  // Convert bytes to big integer
-  let num = 0n;
-  for (const byte of bytes) {
-    num = num * 256n + BigInt(byte);
+  // Count leading zeros
+  let zeros = 0;
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+    zeros++;
   }
 
-  // Convert to base58
+  // Allocate enough space for full number
+  const digits = new Uint8Array(bytes.length * 2);
+  let digitLength = 1;
+
+  // Process bytes
+  for (let i = 0; i < bytes.length; i++) {
+    let carry = bytes[i];
+    for (let j = 0; j < digitLength; j++) {
+      carry += digits[j] * 256;
+      digits[j] = carry % 58;
+      carry = Math.floor(carry / 58);
+    }
+    while (carry > 0) {
+      digits[digitLength++] = carry % 58;
+      carry = Math.floor(carry / 58);
+    }
+  }
+
+  // Convert to string
   let encoded = '';
-  while (num > 0n) {
-    const remainder = num % 58n;
-    num = num / 58n;
-    encoded = BASE58_ALPHABET[Number(remainder)] + encoded;
+  for (let i = digitLength - 1; i >= 0; i--) {
+    encoded += BASE58_ALPHABET[digits[i]];
   }
 
-  // Handle leading zeros
-  for (const byte of bytes) {
-    if (byte !== 0) break;
+  // Add leading 1s
+  for (let i = 0; i < zeros; i++) {
     encoded = '1' + encoded;
   }
 
@@ -76,27 +109,34 @@ function base58Encode(bytes: Uint8Array): string {
 }
 
 /**
- * Encode an address to SS58 format
+ * Encode an address to SS58 format (matching Polkadot.js implementation)
  */
 export function encodeAddress(address: string | Uint8Array, ss58Format = 42): string {
   const bytes = typeof address === 'string' ? hexToBytes(address) : address;
+  
+  // Validate input
+  if (bytes.length === 0) {
+    throw new Error('Invalid address length');
+  }
   
   // Prepare the data for encoding
   let data: Uint8Array;
   
   if (ss58Format < 64) {
-    // Single byte prefix
+    // Simple single byte prefix
     data = new Uint8Array(1 + bytes.length);
     data[0] = ss58Format;
     data.set(bytes, 1);
-  } else {
-    // Two byte prefix
-    const first = ((ss58Format & 0xfc) >> 2) | 0x40;
-    const second = (ss58Format >> 8) | ((ss58Format & 0x03) << 6);
+  } else if (ss58Format < 16384) {
+    // Two-byte prefix encoding
+    const first = 0x40 | ((ss58Format & 0xfc) >> 2);
+    const second = ((ss58Format & 0x03) << 6) | ((ss58Format & 0xff00) >> 8);
     data = new Uint8Array(2 + bytes.length);
     data[0] = first;
     data[1] = second;
     data.set(bytes, 2);
+  } else {
+    throw new Error('Invalid SS58 format');
   }
   
   // Calculate checksum

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, Alert, Badge, Spinner, Button } from "react-bootstrap";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
 import { getChain } from "./chains";
+import { getSystemEventsStorageKey } from "./generated/resonanceRuntimeMappings";
 import type { SubstrateEvent, ConnectionStatus } from "./types";
 import { themeClasses } from "./theme-utils";
 
@@ -335,7 +336,7 @@ const BlockDetail: React.FC = () => {
             jsonrpc: "2.0",
             method: "state_getStorage",
             params: [
-              "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
+              getSystemEventsStorageKey(),
               blockHash,
             ],
           };

@@ -9,9 +9,10 @@ import {
 } from "react-bootstrap";
 import { getChain, normalizeToGenesis } from "./chains";
 import Block from "./Block";
-import BlockEvents from "./BlockEvents";
+import BlockExtrinsics from "./components/BlockExtrinsics";
 import { isQuantumChain } from "./decoder";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
+import { getSystemEventsStorageKey } from "./generated/resonanceRuntimeMappings";
 import QuantumBadge from "./QuantumBadge";
 import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
 import { themeClasses } from "./theme-utils";
@@ -180,12 +181,8 @@ const Activity: React.FC = () => {
                 });
                 wsRef.current.send(JSON.stringify(getRuntimeMessage));
 
-                // Try multiple storage keys for events (different chains might use different keys)
-                const eventStorageKeys = [
-                  "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7", // standard system.events
-                  "0x26aa394eea5630e07c48ae0c9558cef7780d41e5e16056765bc8461851072c9d7", // frame_system.Events
-                  "0xcc956bdb7605e3547539f321ac2bc95c5f9f9b32b6d503fd8a855a3639c0209c", // possible alternative
-                ];
+                // Get the storage key for System.Events
+                const systemEventsKey = getSystemEventsStorageKey();
 
                 // First, let's see what storage keys exist for this block
                 const getKeysMessage = {
@@ -207,7 +204,7 @@ const Activity: React.FC = () => {
                   id: Math.floor(Math.random() * 1000000),
                   jsonrpc: "2.0",
                   method: "state_getStorage",
-                  params: [eventStorageKeys[0], actualHash],
+                  params: [systemEventsKey, actualHash],
                 };
                 console.log(
                   `Fetching events for block ${blockNumber} with message:`,
@@ -280,8 +277,7 @@ const Activity: React.FC = () => {
                     method: "state_queryStorage",
                     params: [
                       [
-                        "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
-                        "0x26aa394eea5630e07c48ae0c9558cef7780d41e5e16056765bc8461851072c9d7",
+                        getSystemEventsStorageKey(),
                       ],
                       blockHash,
                       blockHash,
@@ -349,6 +345,14 @@ const Activity: React.FC = () => {
                 );
                 console.log(`Extrinsics:`, data.result.block.extrinsics);
 
+                // Update block with extrinsics
+                const extrinsics = data.result.block.extrinsics;
+                setBlocks((prevBlocks) =>
+                  prevBlocks.map((block) =>
+                    block.number === blockNumber ? { ...block, extrinsics } : block,
+                  ),
+                );
+
                 // If we find extrinsics but no events via storage, let's try to query events differently
                 if (data.result.block.extrinsics.length > 0) {
                   // Try state_queryStorageAt as an alternative
@@ -358,7 +362,7 @@ const Activity: React.FC = () => {
                     method: "state_queryStorageAt",
                     params: [
                       [
-                        "0x26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7",
+                        getSystemEventsStorageKey(),
                       ],
                       data.result.block.header.hash || data.result.block.hash,
                     ],
@@ -659,7 +663,7 @@ const Activity: React.FC = () => {
                     <Block block={block} index={index} />
                   </div>
                   <div className="event-column">
-                    <BlockEvents block={block} index={index} />
+                    <BlockExtrinsics block={block} chain={chain} />
                   </div>
                 </div>
               ))}

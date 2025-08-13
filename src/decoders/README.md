@@ -90,7 +90,7 @@ The decoder currently supports events from these pallets:
 
 ### Basic Usage
 
-The decoder is automatically used by the BlockEvents component:
+The decoder is automatically used by the ExtrinsicEvents component:
 
 ```typescript
 import { decodeEnhancedEvents } from './decoders/eventDecoder';

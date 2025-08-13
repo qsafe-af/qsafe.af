@@ -1,5 +1,6 @@
 import type { SubstrateEvent } from '../types';
 import { ScaleDecoder, EventDecoder } from './eventDecoder';
+import { getPalletName, getEventName } from '../generated/resonanceRuntimeMappings';
 
 /**
  * Debug utilities for event decoding
@@ -255,102 +256,12 @@ export function validateDecodedEvent(event: SubstrateEvent): {
 /**
  * Helper to get pallet name by index
  */
-function getPalletName(index: number): string {
-  const palletNames: Record<number, string> = {
-    0: 'system',
-    1: 'utility',
-    2: 'babe',
-    3: 'timestamp',
-    4: 'authorship',
-    5: 'indices',
-    6: 'balances',
-    7: 'transactionPayment',
-    8: 'staking',
-    9: 'session',
-    10: 'democracy',
-    11: 'council',
-    12: 'technicalCommittee',
-    13: 'elections',
-    14: 'technicalMembership',
-    15: 'grandpa',
-    16: 'treasury',
-    17: 'contracts',
-    18: 'sudo',
-    19: 'imonline',
-    20: 'identity',
-    21: 'society',
-    22: 'recovery',
-    23: 'vesting',
-    24: 'scheduler',
-    25: 'proxy',
-    26: 'multisig',
-    27: 'bounties',
-    28: 'tips',
-    29: 'assets',
-    30: 'lottery',
-    31: 'gilt',
-    32: 'uniques',
-    33: 'nfts',
-    34: 'transactionStorage',
-    35: 'bagslist',
-    36: 'stateTrieMigration',
-    37: 'childBounties',
-    38: 'referenda',
-    39: 'conviction',
-    40: 'whitelist',
-    41: 'claims',
-    42: 'alliance',
-    43: 'nominationPools',
-    44: 'fastUnstake',
-    45: 'parachains',
-    46: 'xcm',
-  };
-  
-  return palletNames[index] || `pallet${index}`;
-}
+
 
 /**
  * Helper to get event name by indices
  */
-function getEventName(palletIndex: number, eventIndex: number): string {
-  const palletName = getPalletName(palletIndex);
-  
-  const eventNames: Record<string, Record<number, string>> = {
-    system: {
-      0: 'ExtrinsicSuccess',
-      1: 'ExtrinsicFailed',
-      2: 'CodeUpdated',
-      3: 'NewAccount',
-      4: 'KilledAccount',
-      5: 'Remarked',
-    },
-    balances: {
-      0: 'Endowed',
-      1: 'DustLost',
-      2: 'Transfer',
-      3: 'BalanceSet',
-      4: 'Reserved',
-      5: 'Unreserved',
-      6: 'ReserveRepatriated',
-      7: 'Deposit',
-      8: 'Withdraw',
-      9: 'Slashed',
-    },
-    staking: {
-      0: 'EraPaid',
-      1: 'Rewarded',
-      2: 'Slashed',
-      3: 'OldSlashingReportDiscarded',
-      4: 'StakersElected',
-      5: 'Bonded',
-      6: 'Unbonded',
-      7: 'Withdrawn',
-    },
-    // Add more as needed
-  };
 
-  return eventNames[palletName]?.[eventIndex] || `event${eventIndex}`;
-}
 
 /**
  * Console log helper for event debugging

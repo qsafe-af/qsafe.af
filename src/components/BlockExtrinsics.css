@@ -1,0 +1,185 @@
+/* BlockExtrinsics component styles */
+
+.extrinsics-list {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.extrinsics-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.extrinsics-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.extrinsics-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.extrinsics-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark theme scrollbar */
+[data-bs-theme="dark"] .extrinsics-list::-webkit-scrollbar-track {
+  background: #2b3035;
+}
+
+[data-bs-theme="dark"] .extrinsics-list::-webkit-scrollbar-thumb {
+  background: #6c757d;
+}
+
+[data-bs-theme="dark"] .extrinsics-list::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* BlockExtrinsic component styles */
+.extrinsic-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.extrinsic-card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .extrinsic-card:hover {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.extrinsic-header {
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+
+.extrinsic-status {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+
+
+/* Extrinsic raw data display */
+.extrinsic-raw {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .extrinsic-raw {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.extrinsic-raw code {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+[data-bs-theme="dark"] .extrinsic-raw code {
+  color: #999;
+}
+
+/* No extrinsics message */
+.no-extrinsics {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .extrinsics-list {
+    max-height: 400px;
+  }
+  
+  
+  .extrinsic-header {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+
+}
+
+/* Loading state */
+.extrinsics-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Error state */
+.extrinsics-error {
+  color: #dc3545;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Extrinsic type badges */
+.extrinsic-type-badge {
+  font-weight: normal;
+  font-size: 0.85rem;
+}
+
+/* Animation for new extrinsics */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.extrinsic-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Details/Summary styling for raw extrinsic data */
+.extrinsic-raw details {
+  margin-top: 0.5rem;
+}
+
+.extrinsic-raw summary {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: color 0.2s ease;
+}
+
+.extrinsic-raw summary:hover {
+  color: #0d6efd;
+}
+
+[data-bs-theme="dark"] .extrinsic-raw summary:hover {
+  color: #6ea8fe;
+}
+
+.extrinsic-raw details[open] summary {
+  margin-bottom: 0.5rem;
+  color: #0d6efd;
+}
+
+[data-bs-theme="dark"] .extrinsic-raw details[open] summary {
+  color: #6ea8fe;
+}
+
+.extrinsic-raw code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  color: #666;
+}
+
+[data-bs-theme="dark"] .extrinsic-raw code {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #999;
+}
+

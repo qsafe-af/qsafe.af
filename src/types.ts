@@ -5,6 +5,7 @@ export interface BlockHeader {
   hash: string;
   timestamp?: number;
   events?: SubstrateEvent[];
+  extrinsics?: string[];
   digest?: {
     logs: string[];
   };
@@ -29,6 +30,18 @@ export interface Chain {
   genesis: string;
   displayName: string;
   endpoints?: string[];
+  pallets?: Pallet[];
+}
+
+export interface Pallet {
+  name: string;
+  index: number;
+  calls?: PalletCall[];
+}
+
+export interface PalletCall {
+  name: string;
+  index: number;
 }
 
 export type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";

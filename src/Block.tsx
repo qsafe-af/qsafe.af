@@ -20,6 +20,19 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
   const digestInfo = block.digest ? decodeDigest(block.digest) : null;
   const author = digestInfo?.author;
 
+  // Debug logging
+  if (block.digest && digestInfo) {
+    console.log(`[Block ${block.number}] Digest logs:`, block.digest.logs);
+    console.log(`[Block ${block.number}] Decoded author:`, author);
+    if (author) {
+      console.log(`[Block ${block.number}] Author hex:`, author);
+      console.log(
+        `[Block ${block.number}] First 4 bytes:`,
+        author.slice(0, 10),
+      );
+    }
+  }
+
   // Format author address with SS58
   useEffect(() => {
     if (author && chainId) {
@@ -28,7 +41,7 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
         formatAuthorAddress(author, chain.endpoints?.[0], chain.genesis)
           .then((formatted: string) => setFormattedAuthor(formatted))
           .catch((err: any) => {
-            console.error('[Block] Error formatting author:', err);
+            console.error("[Block] Error formatting author:", err);
             setFormattedAuthor(formatAuthor(author));
           });
       } else {
@@ -49,7 +62,7 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
       <Card className="block-card">
         <Card.Body className="p-3">
           <div className="d-flex justify-content-between align-items-start mb-2">
-            <Link 
+            <Link
               to={`/chains/${chainId}/block/${block.number}`}
               className="block-number text-decoration-none"
             >
@@ -62,7 +75,7 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
             )}
           </div>
           <div className="block-hash">
-            <small className="text-muted">hash:</small>
+            <small className="text-muted">Hash:</small>
             <div
               className={`font-monospace text-break ${block.hash.startsWith("pending_") ? "text-warning" : "text-muted"}`}
               style={{ fontSize: "0.875rem" }}
@@ -82,8 +95,11 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
           </div>
           {formattedAuthor && (
             <div className="block-author mt-2">
-              <small className="text-muted">author:</small>
-              <div className="font-monospace text-muted" style={{ fontSize: "0.875rem" }}>
+              <small className="text-muted">Miner:</small>
+              <div
+                className="font-monospace text-muted"
+                style={{ fontSize: "0.875rem" }}
+              >
                 {formattedAuthor}
               </div>
             </div>

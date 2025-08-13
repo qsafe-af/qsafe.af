@@ -18,8 +18,11 @@ const router = createBrowserRouter(
       <Route path="/chains" element={<Chains />} />
       <Route path="/chains/:chainId" element={<Chain />} />
       <Route path="/chains/:chainId/activity" element={<Activity />} />
-      <Route path="/chains/:chainId/block/:blockNumberOrHash" element={<BlockDetail />} />
-    </Route>
+      <Route
+        path="/chains/:chainId/block/:blockNumberOrHash"
+        element={<BlockDetail />}
+      />
+    </Route>,
   ),
 );
 

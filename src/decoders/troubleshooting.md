@@ -23,7 +23,7 @@ if (phaseType === 0x00) {
 
 **Cause**: Objects are being converted to strings without proper formatting.
 
-**Solution**: Check the display component (`BlockEvents.tsx`) to ensure it properly formats objects:
+**Solution**: Check the display component (`ExtrinsicEvents.tsx`) to ensure it properly formats objects:
 ```typescript
 if (typeof data === "object") {
   return formatDecodedData(data);
