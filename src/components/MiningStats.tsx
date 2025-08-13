@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, Table, Badge, Spinner, Alert, ButtonGroup, Button, Row, Col } from "react-bootstrap";
 import { getChain } from "../chains";
 import { themeClasses } from "../theme-utils";
@@ -427,9 +427,12 @@ const MiningStats: React.FC = () => {
                         </Badge>
                       </td>
                       <td>
-                        <span className="font-monospace small">
+                        <Link 
+                          to={`/chains/${chainId}/account/${miner.address}`}
+                          className="font-monospace small text-decoration-none"
+                        >
                           {miner.ss58Address || miner.address}
-                        </span>
+                        </Link>
                       </td>
                       <td>
                         <strong>{miner.blockCount.toLocaleString()}</strong>

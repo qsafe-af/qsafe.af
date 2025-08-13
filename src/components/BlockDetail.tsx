@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, Alert, Badge, Spinner, Button } from "react-bootstrap";
 import { decodeEnhancedEvents } from "../decoders/eventDecoder";
 import { getChain } from "../chains";
@@ -43,6 +43,7 @@ const BlockDetail: React.FC = () => {
     null,
   );
   const [formattedAuthor, setFormattedAuthor] = useState<string | null>(null);
+  const [authorAddress, setAuthorAddress] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const errorTimeoutRef = useRef<number | null>(null);
 
@@ -214,8 +215,9 @@ const BlockDetail: React.FC = () => {
             const digestInfo = block.header.digest ? decodeDigest(block.header.digest) : null;
             const author = digestInfo?.author;
 
-            // Format author address with SS58
-            if (author && chain) {
+            // Format author address
+            if (author) {
+              setAuthorAddress(author);
               formatAuthorAddress(author, chain.endpoints?.[0], chain.genesis)
                 .then((formatted: string) => setFormattedAuthor(formatted))
                 .catch((err: any) => {
@@ -373,7 +375,12 @@ const BlockDetail: React.FC = () => {
                   <div className="col-12">
                     <h6 className="text-muted mb-2">Miner</h6>
                     <p className="font-monospace small text-break">
-                      {formattedAuthor}
+                      <Link 
+                        to={`/chains/${chainId}/account/${formattedAuthor}`}
+                        className="text-decoration-none"
+                      >
+                        {formattedAuthor}
+                      </Link>
                     </p>
                   </div>
                 </div>

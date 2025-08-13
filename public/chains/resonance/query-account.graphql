@@ -1,0 +1,79 @@
+query GetAccountById($id: String!, $limit: Int!) {
+  account: accountById(id: $id) {
+    id
+    free
+    frozen
+    reserved
+  }
+  transactions: transfersConnection(
+    orderBy: timestamp_DESC
+    first: $limit
+    where: {
+      extrinsicHash_isNull: false
+      AND: { from: { id_eq: $id }, OR: { to: { id_eq: $id } } }
+    }
+  ) {
+    edges {
+      node {
+        fee
+        extrinsicHash
+        block {
+          height
+        }
+        amount
+        timestamp
+        from {
+          id
+        }
+        to {
+          id
+        }
+      }
+    }
+    totalCount
+  }
+  reversibleTransactions: reversibleTransfersConnection(
+    orderBy: timestamp_DESC
+    first: $limit
+    where: { from: { id_eq: $id }, OR: { to: { id_eq: $id } } }
+  ) {
+    edges {
+      node {
+        extrinsicHash
+        timestamp
+        status
+        amount
+        block {
+          height
+        }
+        from {
+          id
+        }
+        to {
+          id
+        }
+      }
+    }
+    totalCount
+  }
+  minerRewards: minerRewardsConnection(
+    orderBy: timestamp_DESC
+    first: $limit
+    where: { miner: { id_eq: $id } }
+  ) {
+    edges {
+      node {
+        block {
+          height
+          hash
+        }
+        reward
+        miner {
+          id
+        }
+        timestamp
+      }
+    }
+    totalCount
+  }
+}
