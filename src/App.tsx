@@ -7,7 +7,8 @@ import {
 } from "react-router-dom";
 import Header from "./Header";
 import Activity from "./Activity";
-import BlockDetail from "./BlockDetail";
+import BlockDetail from "./components/BlockDetail";
+import MiningStats from "./components/MiningStats";
 import Chains from "./Chains";
 import Chain from "./Chain";
 
@@ -22,7 +23,11 @@ const router = createBrowserRouter(
         path="/chains/:chainId/block/:blockNumberOrHash"
         element={<BlockDetail />}
       />
-    </Route>,
+      <Route
+        path="/chains/:chainId/stats"
+        element={<MiningStats />}
+      />
+    </Route>
   ),
 );
 

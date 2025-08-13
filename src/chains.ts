@@ -9,6 +9,8 @@ export const chains: Record<string, Chain> = {
       "0xdbacc01ae41b79388135ccd5d0ebe81eb0905260344256e6f4003bb8e75a91b5",
     displayName: "Resonance",
     endpoints: ["wss://a.t.res.fm"],
+    indexer: "https://gql.res.fm/graphql",
+    treasury: "qzgtEuKmVEPNrjjttgZfKjdHdvWEFKYMintizFuSJvXPiWEv8",
     pallets: [
       {
         name: "System",

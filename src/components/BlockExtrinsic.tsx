@@ -17,6 +17,9 @@ class ExtrinsicDecoder {
   private offset: number;
 
   constructor(hex: string) {
+    if (!hex || typeof hex !== 'string') {
+      throw new Error('Invalid hex string provided to ExtrinsicDecoder');
+    }
     const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
     this.data = new Uint8Array(
       cleanHex.match(/.{2}/g)?.map((byte) => parseInt(byte, 16)) || [],
@@ -120,6 +123,20 @@ const BlockExtrinsic: React.FC<BlockExtrinsicProps> = ({
   events,
   chain,
 }) => {
+  // Handle undefined or invalid extrinsic
+  if (!extrinsic || typeof extrinsic !== 'string') {
+    console.warn(`Invalid extrinsic at index ${index}:`, extrinsic);
+    return (
+      <Card className="mb-2">
+        <Card.Body>
+          <div className="text-muted">
+            <small>Extrinsic #{index} - Invalid data</small>
+          </div>
+        </Card.Body>
+      </Card>
+    );
+  }
+
   // Decode the extrinsic to get pallet and call info
   const decoder = new ExtrinsicDecoder(extrinsic);
   const decoded = decoder.decodeExtrinsic();

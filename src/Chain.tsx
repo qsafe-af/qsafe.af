@@ -34,6 +34,16 @@ const Chain: React.FC = () => {
     }
   ];
 
+  // Only add mining stats if indexer is available
+  if (chain.indexer) {
+    availableRoutes.push({
+      path: `/chains/${chain.name}/stats`,
+      name: 'Mining Stats',
+      description: 'View mining statistics and leaderboard',
+      icon: 'bi-graph-up'
+    });
+  }
+
   return (
     <Container className="mt-4">
       <div className="mb-4">

@@ -34,6 +34,9 @@ export const themeClasses = {
   // Code/pre blocks
   codeBlock: 'bg-body-tertiary border rounded p-3',
   
+  // Table
+  table: '',
+  
   // Badges with theme awareness
   badgeVariants: {
     primary: 'bg-primary',

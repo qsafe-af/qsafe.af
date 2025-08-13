@@ -31,6 +31,8 @@ export interface Chain {
   displayName: string;
   endpoints?: string[];
   pallets?: Pallet[];
+  indexer?: string;
+  treasury?: string;
 }
 
 export interface Pallet {

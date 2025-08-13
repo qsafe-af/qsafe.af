@@ -1,0 +1,2 @@
+- [ ] create components/RuntimeHistory to display a timeline featuring runtime upgrades
+- [x] create a new /chains/:chain-id/stats route to a new components/MiningStats.tsx to display a mining leaderboard whose implementation can be derived from https://github.com/qsafe-af/qsafe.af/blob/main/src/components/MiningStats.tsx. the styling should of course match this application rather than the source and feel free to improve the implementation if you see opportunities to do so.

@@ -31,6 +31,7 @@ const Header = () => {
     
     return {
       name: displayName,
+      segment: segment,
       path: `/${segments.slice(0, i + 1).join("/")}`,
     };
   });
@@ -86,6 +87,10 @@ const Header = () => {
           ? crumbs.map((crumb, cI) => {
               return crumbs.length === cI + 1 ? (
                 <Breadcrumb.Item key={cI} active>
+                  {crumb.name}
+                </Breadcrumb.Item>
+              ) : crumb.segment === 'block' ? (
+                <Breadcrumb.Item key={cI} active={false}>
                   {crumb.name}
                 </Breadcrumb.Item>
               ) : (
