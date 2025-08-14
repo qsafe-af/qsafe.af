@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Container, Card, Alert, Badge, ListGroup } from 'react-bootstrap';
 import { getChain } from './chains';
 import { themeClasses } from './theme-utils';
+import RuntimeTimeline from './components/RuntimeTimeline';
 
 const Chain: React.FC = () => {
   const { chainId } = useParams<{ chainId: string }>();
@@ -101,6 +102,13 @@ const Chain: React.FC = () => {
           </div>
         </Card.Body>
       </Card>
+
+      {chain.endpoints && chain.endpoints.length > 0 && (
+        <RuntimeTimeline 
+          endpoint={chain.endpoints[0]} 
+          chainName={chain.name} 
+        />
+      )}
 
       <Card className={`${themeClasses.bg.tertiary} border`}>
         <Card.Header>
