@@ -313,12 +313,7 @@ const Nodes: React.FC = () => {
                     console.log('[telemetry]   location[0] length:', location[0].length);
                   }
                 }
-            }
-            
-            // Track update frequency
-            updateCountRef.current++;
-            if (updateCountRef.current % 20 === 0) {
-              console.log(`[telemetry] Update #${updateCountRef.current}: ${nodeName} at block ${blockHeight}`);
+              }
             }
             
             // Track update frequency
@@ -390,7 +385,6 @@ const Nodes: React.FC = () => {
               setLastUpdateTime(new Date());
               return updated;
             });
-          }
           }
           break;
           
@@ -693,8 +687,9 @@ const Nodes: React.FC = () => {
               <tbody>
                 {nodeList.map((node) => {
                   const isRecentlyUpdated = node.lastUpdated && (Date.now() - node.lastUpdated) < 5000;
+                  const isDead = node.peers === 0;
                   return (
-                  <tr key={node.id} className={isRecentlyUpdated ? 'recently-updated' : ''}>
+                  <tr key={node.id} className={`${isRecentlyUpdated ? 'recently-updated' : ''} ${isDead ? 'dead-node' : ''}`}>
                     <td>
                       <div>
                         <strong>{node.name}</strong>
@@ -724,7 +719,18 @@ const Nodes: React.FC = () => {
                         </span>
                       ) : '-'}
                     </td>
-                    <td>{node.peers ?? '-'}</td>
+                    <td>
+                      {node.peers !== undefined ? (
+                        node.peers === 0 ? (
+                          <span className="text-danger">
+                            <i className="bi bi-x-circle-fill me-1"></i>
+                            {node.peers}
+                          </span>
+                        ) : (
+                          node.peers
+                        )
+                      ) : '-'}
+                    </td>
                     <td>{node.txcount ?? '-'}</td>
                     <td>
                       <div className="small">
@@ -782,6 +788,12 @@ const Nodes: React.FC = () => {
         @keyframes highlight {
           0% { background-color: rgba(25, 135, 84, 0.2); }
           100% { background-color: transparent; }
+        }
+        .dead-node {
+          opacity: 0.6;
+        }
+        .dead-node td {
+          color: var(--bs-gray-600) !important;
         }
       `}</style>
     </div>
