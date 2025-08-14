@@ -418,15 +418,65 @@ const Account: React.FC = () => {
       }
 
       // Fetch events based on filter
-      let eventsData;
       let processedEvents: AccountEvent[] = [];
       
       console.log(`Fetching ${filter} events for account:`, ss58Addr);
       console.log('Current cursor:', cursor);
       
-      if (filter === 'transfers') {
+      if (filter === 'all') {
+        // For "all" filter, fetch both balance events and transfers
+        console.log('Fetching all events (balance events + transfers)');
+        
+        // Note: For simplicity, we'll just fetch balance events which should include transfers
+        // that have from/to fields populated
+        const eventsData = await fetchGraphQL(ACCOUNT_EVENTS_QUERY, {
+          accountId: ss58Addr,
+          limit: EVENTS_PER_PAGE,
+          cursor: cursor
+        });
+        
+        const eventNodes = eventsData.balanceEventsConnection?.edges?.map((edge: { node: Record<string, unknown> }) => edge.node) || [];
+        
+        // Also fetch transfers to ensure we get all transfer details
+        const transfersData = await fetchGraphQL(ACCOUNT_TRANSFERS_QUERY, {
+          accountId: ss58Addr,
+          limit: EVENTS_PER_PAGE,
+          cursor: cursor
+        });
+        
+        const transferNodes = transfersData.transfersConnection?.edges?.map((edge: { node: Record<string, unknown> }) => edge.node) || [];
+        
+        // Process both sets of events
+        const balanceEvents = processEvents(eventNodes, false);
+        const transferEvents = processEvents(transferNodes, true);
+        
+        // Merge and deduplicate events
+        const eventMap = new Map<string, AccountEvent>();
+        
+        // Add balance events first
+        balanceEvents.forEach(event => {
+          eventMap.set(event.id, event);
+        });
+        
+        // Add/update with transfer events (transfers have more complete data)
+        transferEvents.forEach(event => {
+          eventMap.set(event.id, event);
+        });
+        
+        // Convert back to array and sort by timestamp
+        processedEvents = Array.from(eventMap.values()).sort((a, b) => 
+          b.timestamp.getTime() - a.timestamp.getTime()
+        );
+        
+        // Update pagination state (use balance events pagination as primary)
+        const pageInfo = eventsData.balanceEventsConnection?.pageInfo;
+        if (pageInfo) {
+          setHasMore(pageInfo.hasNextPage);
+          setEndCursor(pageInfo.endCursor);
+        }
+      } else if (filter === 'transfers') {
         console.log('Executing ACCOUNT_TRANSFERS_QUERY');
-        eventsData = await fetchGraphQL(ACCOUNT_TRANSFERS_QUERY, {
+        const eventsData = await fetchGraphQL(ACCOUNT_TRANSFERS_QUERY, {
           accountId: ss58Addr,
           limit: EVENTS_PER_PAGE,
           cursor: cursor
@@ -457,8 +507,9 @@ const Account: React.FC = () => {
           setEndCursor(pageInfo.endCursor);
         }
       } else {
+        // For other filters (minted, burned, other), only query balance events
         console.log('Executing ACCOUNT_EVENTS_QUERY');
-        eventsData = await fetchGraphQL(ACCOUNT_EVENTS_QUERY, {
+        const eventsData = await fetchGraphQL(ACCOUNT_EVENTS_QUERY, {
           accountId: ss58Addr,
           limit: EVENTS_PER_PAGE,
           cursor: cursor
