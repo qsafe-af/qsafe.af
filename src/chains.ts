@@ -11,6 +11,7 @@ export const chains: Record<string, Chain> = {
     endpoints: ["wss://a.t.res.fm"],
     indexer: "https://gql.res.fm/graphql",
     treasury: "qzgtEuKmVEPNrjjttgZfKjdHdvWEFKYMintizFuSJvXPiWEv8",
+    telemetry: "wss://tc0.res.fm/feed",
     pallets: [
       {
         name: "System",
@@ -280,6 +281,7 @@ export const chains: Record<string, Chain> = {
       "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
     displayName: "Integration",
     endpoints: ["wss://a.i.res.fm"],
+    telemetry: "wss://tc0.res.fm/feed",
   },
 };
 

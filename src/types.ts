@@ -33,6 +33,7 @@ export interface Chain {
   pallets?: Pallet[];
   indexer?: string;
   treasury?: string;
+  telemetry?: string;
 }
 
 export interface Pallet {

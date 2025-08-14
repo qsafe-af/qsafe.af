@@ -10,6 +10,7 @@ import Activity from "./Activity";
 import BlockDetail from "./components/BlockDetail";
 import MiningStats from "./components/MiningStats";
 import Account from "./components/Account";
+import Nodes from "./components/Nodes";
 import Chains from "./Chains";
 import Chain from "./Chain";
 
@@ -31,6 +32,10 @@ const router = createBrowserRouter(
       <Route
         path="/chains/:chainId/account/:accountId"
         element={<Account />}
+      />
+      <Route
+        path="/chains/:chainId/nodes"
+        element={<Nodes />}
       />
     </Route>
   ),

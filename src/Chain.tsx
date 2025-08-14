@@ -45,6 +45,16 @@ const Chain: React.FC = () => {
     });
   }
 
+  // Only add nodes view if telemetry is available
+  if (chain.telemetry) {
+    availableRoutes.push({
+      path: `/chains/${chain.name}/nodes`,
+      name: 'Network Nodes',
+      description: 'View connected nodes and network statistics',
+      icon: 'bi-hdd-network'
+    });
+  }
+
   return (
     <Container className="mt-4">
       <div className="mb-4">
