@@ -33,10 +33,7 @@ interface TelemetryNode {
   ts?: number;
 }
 
-interface TelemetryMessage {
-  action: string;
-  payload?: any;
-}
+
 
 const Nodes: React.FC = () => {
   const { chainId } = useParams<{ chainId: string }>();
@@ -66,7 +63,7 @@ const Nodes: React.FC = () => {
         console.log('[telemetry] Chain genesis:', chain.genesis);
         setConnectionStatus('connecting');
         
-        const ws = new WebSocket(chain.telemetry);
+        const ws = new WebSocket(chain.telemetry!);
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -189,7 +186,9 @@ const Nodes: React.FC = () => {
               }
             } catch (err) {
               console.error('[telemetry] Error processing message:', err);
-              console.error('[telemetry] Error stack:', err.stack);
+              if (err instanceof Error) {
+                console.error('[telemetry] Error stack:', err.stack);
+              }
               console.error('[telemetry] Raw event data:', event.data);
             }
           };
@@ -247,7 +246,7 @@ const Nodes: React.FC = () => {
           if (message.payload && Array.isArray(message.payload)) {
             // Parse telemetry array format
             // Format: [nodeId, details, hardware, location, stats, network, uptime, timestamp]
-            const [nodeId, details, hardware, location, stats, network, uptime, timestamp] = message.payload;
+            const [nodeId, details, hardware, , , network, uptime, timestamp] = message.payload;
             
 
             
