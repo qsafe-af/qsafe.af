@@ -31,6 +31,7 @@ interface TelemetryNode {
   height?: number;
   msg?: string;
   ts?: number;
+  lastUpdated?: number;
 }
 
 
@@ -44,9 +45,11 @@ const Nodes: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasSubscribedRef = useRef<boolean>(false);
+  const updateCountRef = useRef<number>(0);
 
   const chain = chainId ? getChain(chainId) : null;
 
@@ -246,7 +249,7 @@ const Nodes: React.FC = () => {
           if (message.payload && Array.isArray(message.payload)) {
             // Parse telemetry array format
             // Format: [nodeId, details, hardware, location, stats, network, uptime, timestamp]
-            const [nodeId, details, hardware, , , network, uptime, timestamp] = message.payload;
+            const [nodeId, details, hardware, location, stats, network, uptime, timestamp] = message.payload;
             
 
             
@@ -261,14 +264,20 @@ const Nodes: React.FC = () => {
               nodeImpl = details[2] || '';
             }
             
-            // Parse network array [blockHeight, blockHash, ???, timestamp, latency]
-            let blockHeight, blockHash, peers, latency;
+            // Parse network array [blockHeight, blockHash, ???, timestamp, latency, ...]
+            let blockHeight, blockHash, peers, latency, finalized, txcount;
             if (Array.isArray(network) && network.length >= 5) {
               blockHeight = network[0];
               blockHash = network[1];
-              // network[2] is not peers - it's some other metric (maybe txcount?)
+              // network[2] is some metric (not peers)
               // network[3] is timestamp
               latency = network[4]; // This is latency in ms
+              
+              // Check for additional data
+              if (network.length > 5) {
+                finalized = network[5]; // Might be finalized block
+                txcount = network[6]; // Might be tx count
+              }
             }
             
             // Parse location from uptime array [lat, lon, city]
@@ -285,10 +294,37 @@ const Nodes: React.FC = () => {
             // Find peer count - most nodes have < 40, bootnodes can have 70-81
             peers = undefined;
             
-            // Special logging for known bootnodes only
+            // Special logging for known bootnodes and first few nodes
             const isBootnode = nodeName === 'effrafax' || nodeName === 'frootmig' || nodeName === 'bob';
-            if (isBootnode) {
-              console.log(`[telemetry] BOOTNODE "${nodeName}" hardware:`, hardware);
+            if (isBootnode || nodeId <= 2) {
+              console.log(`[telemetry] NODE "${nodeName}" (id: ${nodeId}) data exploration:`);
+              console.log('[telemetry]   hardware:', hardware);
+              console.log('[telemetry]   stats:', stats);
+              console.log('[telemetry]   network full:', network);
+              console.log('[telemetry]   location:', location);
+              
+              // Explore network array beyond what we already parse
+              if (Array.isArray(network) && network.length > 5) {
+                // Check what's in location array
+                if (Array.isArray(location) && location.length > 0) {
+                  console.log('[telemetry]   location[0] type:', typeof location[0]);
+                  if (Array.isArray(location[0]) && location[0].length > 0) {
+                    console.log('[telemetry]   location[0] first few values:', location[0].slice(0, 5));
+                    console.log('[telemetry]   location[0] length:', location[0].length);
+                  }
+                }
+            }
+            
+            // Track update frequency
+            updateCountRef.current++;
+            if (updateCountRef.current % 20 === 0) {
+              console.log(`[telemetry] Update #${updateCountRef.current}: ${nodeName} at block ${blockHeight}`);
+            }
+            
+            // Track update frequency
+            updateCountRef.current++;
+            if (updateCountRef.current % 20 === 0) {
+              console.log(`[telemetry] Update #${updateCountRef.current}: ${nodeName} at block ${blockHeight}`);
             }
             
             // Peer count is in hardware[0]
@@ -296,9 +332,38 @@ const Nodes: React.FC = () => {
               peers = hardware[0];
             }
             
-            // Stats contains historical data, not current block info
-            let uploadBandwidth, downloadBandwidth;
-            // These might be calculated from stats arrays if needed
+            // Parse stats array - contains bandwidth history
+            let uploadBandwidth, downloadBandwidth, stateSize;
+            if (Array.isArray(stats) && stats.length >= 2) {
+              // stats[0] = upload bandwidth samples (bytes/sec)
+              // stats[1] = download bandwidth samples (bytes/sec)
+              // stats[2] = timestamps for samples
+              
+              // Get the most recent bandwidth values (last element)
+              if (Array.isArray(stats[0]) && stats[0].length > 0) {
+                const lastUpload = stats[0][stats[0].length - 1];
+                uploadBandwidth = Math.round(lastUpload); // bytes/sec
+              }
+              if (Array.isArray(stats[1]) && stats[1].length > 0) {
+                const lastDownload = stats[1][stats[1].length - 1];
+                downloadBandwidth = Math.round(lastDownload); // bytes/sec
+              }
+            }
+            
+            // Calculate finalized block (current block - 179)
+            if (typeof blockHeight === 'number') {
+              finalized = Math.max(0, blockHeight - 179);
+            }
+            
+            // State size might be in location array
+            if (Array.isArray(location) && location.length > 0 && Array.isArray(location[0])) {
+              // location[0] might be state size histogram
+              // For now, just use the last value if it seems reasonable
+              const lastValue = location[0][location[0].length - 1];
+              if (typeof lastValue === 'number' && lastValue > 1000000) { // > 1MB
+                stateSize = lastValue;
+              }
+            }
             
             const telemetryNode: TelemetryNode = {
               id: String(nodeId),
@@ -309,21 +374,23 @@ const Nodes: React.FC = () => {
               latency: latency,
               blockHeight: blockHeight,
               blockHash: blockHash,
-              finalized: undefined, // Not in current telemetry format
-              txcount: undefined, // Not in current telemetry format
+              finalized: finalized,
+              txcount: txcount,
               peers: peers,
               uploadBandwidth: uploadBandwidth,
               downloadBandwidth: downloadBandwidth,
-              stateSize: undefined, // Not in current format
-              location: locationObj
+              stateSize: stateSize,
+              location: locationObj,
+              lastUpdated: Date.now()
             };
             
             setNodes(prev => {
               const updated = new Map(prev);
               updated.set(String(nodeId), telemetryNode);
-              // Removed for cleaner logs
+              setLastUpdateTime(new Date());
               return updated;
             });
+          }
           }
           break;
           
@@ -410,9 +477,10 @@ const Nodes: React.FC = () => {
 
   const formatBandwidth = (bytes?: number): string => {
     if (!bytes) return '-';
-    if (bytes < 1024) return `${bytes} B/s`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB/s`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB/s`;
+    const kbps = bytes / 1024;
+    if (kbps < 1) return `${bytes.toFixed(0)} B/s`;
+    if (kbps < 1024) return `${kbps.toFixed(1)} KB/s`;
+    return `${(kbps / 1024).toFixed(1)} MB/s`;
   };
 
   const formatStateSize = (bytes?: number): string => {
@@ -523,6 +591,11 @@ const Nodes: React.FC = () => {
           <div className="d-flex justify-content-between align-items-center">
             <h5 className="mb-0">Connected Nodes</h5>
             <div className="d-flex align-items-center gap-3">
+              {lastUpdateTime && (
+                <small className="text-muted">
+                  Last update: {lastUpdateTime.toLocaleTimeString()}
+                </small>
+              )}
               <Badge bg={connectionStatus === 'connected' ? 'success' : connectionStatus === 'connecting' ? 'warning' : 'danger'}>
                 {connectionStatus === 'connected' ? (
                   <>
@@ -618,8 +691,10 @@ const Nodes: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {nodeList.map((node) => (
-                  <tr key={node.id}>
+                {nodeList.map((node) => {
+                  const isRecentlyUpdated = node.lastUpdated && (Date.now() - node.lastUpdated) < 5000;
+                  return (
+                  <tr key={node.id} className={isRecentlyUpdated ? 'recently-updated' : ''}>
                     <td>
                       <div>
                         <strong>{node.name}</strong>
@@ -675,7 +750,8 @@ const Nodes: React.FC = () => {
                       ) : '-'}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </Table>
           )}
@@ -699,6 +775,13 @@ const Nodes: React.FC = () => {
         }
         .sortable-header:hover .bi-chevron-expand {
           opacity: 1 !important;
+        }
+        .recently-updated {
+          animation: highlight 0.5s ease-in-out;
+        }
+        @keyframes highlight {
+          0% { background-color: rgba(25, 135, 84, 0.2); }
+          100% { background-color: transparent; }
         }
       `}</style>
     </div>
