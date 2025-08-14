@@ -24,14 +24,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
-        run: yarn build
+        run: pnpm build
 
       - name: Deploy to Cloudflare Pages
         env:
@@ -40,12 +57,12 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "Deploying preview for PR #${{ github.event.pull_request.number }}"
-            npx wrangler pages deploy dist \
+            pnpm dlx wrangler pages deploy dist \
               --project-name=qsafe \
               --branch=pr-${{ github.event.pull_request.number }}
           else
             echo "Deploying to production"
-            npx wrangler pages deploy dist \
+            pnpm dlx wrangler pages deploy dist \
               --project-name=qsafe \
               --branch=main
           fi

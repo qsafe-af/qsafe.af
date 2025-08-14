@@ -38,21 +38,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache directory
-        id: yarn-cache-dir
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
         shell: bash
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Cache yarn packages
+      - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ steps.yarn-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('explorer/yarn.lock') }}
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pnpm-store-
 
       - name: Cache build artifacts
         if: ${{ !inputs.skip_cache }}
@@ -65,17 +69,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
+      - name: Remove package-lock.json
+        run: rm -f package-lock.json
+
       - name: Install dependencies
         run: |
-          yarn install --frozen-lockfile --network-timeout 100000
+          pnpm install --frozen-lockfile
           
       - name: Lint code
-        run: yarn lint || true
+        run: pnpm lint || true
 
       - name: Build project
         run: |
           echo "Building for production..."
-          yarn build
+          pnpm build
           
           # Report build size
           echo "## Build Size Report" >> $GITHUB_STEP_SUMMARY
@@ -113,7 +120,7 @@ jobs:
           echo "Starting deployment to Cloudflare Pages..."
           
           # Deploy with wrangler
-          output=$(npx wrangler pages deploy dist \
+          output=$(pnpm dlx wrangler pages deploy dist \
             --project-name=qsafe \
             --branch=main \
             --commit-hash=${{ github.sha }} \

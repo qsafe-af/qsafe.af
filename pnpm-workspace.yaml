@@ -1,0 +1,7 @@
+packages:
+  # Include the root package
+  - '.'
+  # Future packages can be added here
+  # - 'packages/*'
+  # - 'apps/*'
+  # - 'libs/*'

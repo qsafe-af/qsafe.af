@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "tsc -b && vite build",
-    "deploy": "npx wrangler pages deploy dist --project-name qsafe"
+    "deploy": "pnpm dlx wrangler pages deploy dist --project-name qsafe"
   },
   "dependencies": {
     "@noble/hashes": "^1.8.0",

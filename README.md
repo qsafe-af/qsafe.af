@@ -35,29 +35,29 @@ This explorer provides a unified interface for monitoring and analyzing multiple
 
 ### Prerequisites
 - Node.js 20+
-- Yarn
+- pnpm
 
 ### Installation
 ```bash
 cd explorer
-yarn install
+pnpm install
 ```
 
 ### Development
 ```bash
-yarn dev
+pnpm dev
 ```
 
 The application will be available at `http://localhost:5173`
 
 ### Building
 ```bash
-yarn build
+pnpm build
 ```
 
 ### Deployment
 ```bash
-yarn deploy  # Deploys to Cloudflare Pages
+pnpm deploy  # Deploys to Cloudflare Pages
 ```
 
 ## Architecture
