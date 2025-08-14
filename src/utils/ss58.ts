@@ -1,160 +1,71 @@
-// SS58 address encoding utilities
-import { blake2b as blake2bHash } from '@noble/hashes/blake2b';
-
-// Base58 alphabet used by Bitcoin and SS58
-const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-
-// SS58 prefix for checksum
-const SS58_PREFIX = 'SS58PRE';
+// SS58 address encoding utilities using @polkadot/util-crypto
+import { encodeAddress as polkadotEncodeAddress, decodeAddress as polkadotDecodeAddress, cryptoWaitReady } from '@polkadot/util-crypto';
 
 // Cache for chain properties
-const chainPropertiesCache = new Map<string, { ss58Format: number; tokenSymbol?: string; tokenDecimals?: number }>();
+const chainPropertiesCache = new Map<string, { 
+  ss58Format: number; 
+  tokenSymbol?: string; 
+  tokenDecimals?: number 
+}>();
+
+// Ensure crypto is ready
+let cryptoReady = false;
+const cryptoReadyPromise = cryptoWaitReady().then(() => {
+  cryptoReady = true;
+});
 
 /**
- * Convert hex string to Uint8Array
+ * Ensure crypto is initialized before using crypto functions
  */
-function hexToBytes(hex: string): Uint8Array {
-  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
-  const bytes = new Uint8Array(cleanHex.length / 2);
-  
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(cleanHex.substr(i * 2, 2), 16);
+async function ensureCryptoReady(): Promise<void> {
+  if (!cryptoReady) {
+    await cryptoReadyPromise;
   }
-  
-  return bytes;
 }
 
 /**
- * Blake2b hash with 512-bit output (as used by Substrate)
+ * Encode an address to SS58 format using @polkadot/util-crypto
  */
-function blake2b512(data: Uint8Array): Uint8Array {
-  return blake2bHash(data, { dkLen: 64 }); // 64 bytes = 512 bits
+export async function encodeAddress(address: string | Uint8Array, ss58Format = 42): Promise<string> {
+  await ensureCryptoReady();
+  return polkadotEncodeAddress(address, ss58Format);
 }
 
 /**
- * Create SS58 checksum
+ * Decode an SS58 address to raw bytes using @polkadot/util-crypto
  */
-function createSS58Checksum(data: Uint8Array): Uint8Array {
-  const prefixBytes = new TextEncoder().encode(SS58_PREFIX);
-  const combined = new Uint8Array(prefixBytes.length + data.length);
-  combined.set(prefixBytes);
-  combined.set(data, prefixBytes.length);
-  
-  const hash = blake2b512(combined);
-  
-  // SS58 checksum length is based on the length of the entire payload
-  const payloadLength = data.length;
-  let checksumLength: number;
-  
-  // Standard addresses (1 byte prefix + 32 bytes address = 33 bytes) get 2 byte checksum
-  if (payloadLength === 33) {
-    checksumLength = 2;
-  } else if (payloadLength < 34) {
-    checksumLength = 1;
-  } else if (payloadLength < 89) {
-    checksumLength = 2;
-  } else if (payloadLength < 147) {
-    checksumLength = 4;
-  } else if (payloadLength < 258) {
-    checksumLength = 8;
-  } else {
-    checksumLength = 32;
-  }
-  
-  return hash.slice(0, checksumLength);
+export async function decodeAddress(address: string, ignoreChecksum?: boolean, ss58Format?: number): Promise<Uint8Array> {
+  await ensureCryptoReady();
+  return polkadotDecodeAddress(address, ignoreChecksum, ss58Format);
 }
 
 /**
- * Base58 encode
+ * Synchronous version of encodeAddress (requires crypto to be ready)
  */
-function base58Encode(bytes: Uint8Array): string {
-  if (bytes.length === 0) return '';
-
-  // Count leading zeros
-  let zeros = 0;
-  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
-    zeros++;
+export function encodeAddressSync(address: string | Uint8Array, ss58Format = 42): string {
+  if (!cryptoReady) {
+    throw new Error('Crypto not ready. Call ensureCryptoReady() first.');
   }
-
-  // Allocate enough space for full number
-  const digits = new Uint8Array(bytes.length * 2);
-  let digitLength = 1;
-
-  // Process bytes
-  for (let i = 0; i < bytes.length; i++) {
-    let carry = bytes[i];
-    for (let j = 0; j < digitLength; j++) {
-      carry += digits[j] * 256;
-      digits[j] = carry % 58;
-      carry = Math.floor(carry / 58);
-    }
-    while (carry > 0) {
-      digits[digitLength++] = carry % 58;
-      carry = Math.floor(carry / 58);
-    }
-  }
-
-  // Convert to string
-  let encoded = '';
-  for (let i = digitLength - 1; i >= 0; i--) {
-    encoded += BASE58_ALPHABET[digits[i]];
-  }
-
-  // Add leading 1s
-  for (let i = 0; i < zeros; i++) {
-    encoded = '1' + encoded;
-  }
-
-  return encoded;
+  return polkadotEncodeAddress(address, ss58Format);
 }
 
 /**
- * Encode an address to SS58 format (matching Polkadot.js implementation)
+ * Synchronous version of decodeAddress (requires crypto to be ready)
  */
-export function encodeAddress(address: string | Uint8Array, ss58Format = 42): string {
-  const bytes = typeof address === 'string' ? hexToBytes(address) : address;
-  
-  // Validate input
-  if (bytes.length === 0) {
-    throw new Error('Invalid address length');
+export function decodeAddressSync(address: string, ignoreChecksum?: boolean, ss58Format?: number): Uint8Array {
+  if (!cryptoReady) {
+    throw new Error('Crypto not ready. Call ensureCryptoReady() first.');
   }
-  
-  // Prepare the data for encoding
-  let data: Uint8Array;
-  
-  if (ss58Format < 64) {
-    // Simple single byte prefix
-    data = new Uint8Array(1 + bytes.length);
-    data[0] = ss58Format;
-    data.set(bytes, 1);
-  } else if (ss58Format < 16384) {
-    // Two-byte prefix encoding
-    const first = 0x40 | ((ss58Format & 0xfc) >> 2);
-    const second = ((ss58Format & 0x03) << 6) | ((ss58Format & 0xff00) >> 8);
-    data = new Uint8Array(2 + bytes.length);
-    data[0] = first;
-    data[1] = second;
-    data.set(bytes, 2);
-  } else {
-    throw new Error('Invalid SS58 format');
-  }
-  
-  // Calculate checksum
-  const checksum = createSS58Checksum(data);
-  
-  // Combine all parts
-  const full = new Uint8Array(data.length + checksum.length);
-  full.set(data);
-  full.set(checksum, data.length);
-  
-  // Base58 encode
-  return base58Encode(full);
+  return polkadotDecodeAddress(address, ignoreChecksum, ss58Format);
 }
 
 /**
  * Fetch and cache system properties for a chain
  */
-export async function fetchSystemProperties(endpoint: string, genesis: string): Promise<{ ss58Format: number }> {
+export async function fetchSystemProperties(
+  endpoint: string, 
+  genesis: string
+): Promise<{ ss58Format: number; tokenSymbol?: string; tokenDecimals?: number }> {
   // Check cache first
   const cached = chainPropertiesCache.get(genesis);
   if (cached) {
@@ -255,7 +166,7 @@ export async function formatAuthorAddress(
     const { ss58Format } = await fetchSystemProperties(endpoint, genesis);
     
     // Encode to SS58
-    const ss58Address = encodeAddress(hexAddress, ss58Format);
+    const ss58Address = await encodeAddress(hexAddress, ss58Format);
     
     // Return full SS58 address
     return ss58Address;
@@ -266,11 +177,31 @@ export async function formatAuthorAddress(
   }
 }
 
-
-
 /**
  * Get cached SS58 format for a chain
  */
 export function getCachedSS58Format(genesis: string): number | undefined {
   return chainPropertiesCache.get(genesis)?.ss58Format;
+}
+
+/**
+ * Get cached chain properties
+ */
+export function getCachedChainProperties(genesis: string): { 
+  ss58Format: number; 
+  tokenSymbol?: string; 
+  tokenDecimals?: number 
+} | undefined {
+  return chainPropertiesCache.get(genesis);
+}
+
+/**
+ * Initialize crypto and optionally pre-cache chain properties
+ */
+export async function initializeSS58(endpoint?: string, genesis?: string): Promise<void> {
+  await ensureCryptoReady();
+  
+  if (endpoint && genesis) {
+    await fetchSystemProperties(endpoint, genesis);
+  }
 }

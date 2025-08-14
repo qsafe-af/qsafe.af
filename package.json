@@ -13,6 +13,11 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.8.0",
+    "@polkadot/types": "^16.4.4",
+    "@polkadot/types-codec": "^16.4.4",
+    "@polkadot/util": "^13.5.5",
+    "@polkadot/util-crypto": "^13.5.5",
+    "@polkadot/wasm-crypto": "^7.4.1",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "react": "^19.1.1",

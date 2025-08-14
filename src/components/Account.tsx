@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, Table, Badge, Spinner, Alert, Button, Row, Col, Nav } from "react-bootstrap";
 import { getChain } from "../chains";
 import { themeClasses } from "../theme-utils";
-import { encodeAddress, fetchSystemProperties, getCachedSS58Format } from "../utils/ss58";
+import { encodeAddressSync, fetchSystemProperties, getCachedSS58Format, getCachedChainProperties } from "../utils/ss58";
 
 interface AccountEvent {
   id: string;
@@ -347,9 +347,9 @@ const Account: React.FC = () => {
           }
           
           // Use the format we got, or default to substrate format
-          ss58Addr = encodeAddress(hexAddr, ss58Format || 42);
+          ss58Addr = encodeAddressSync(hexAddr, ss58Format || 42);
         } else {
-          ss58Addr = encodeAddress(hexAddr);
+          ss58Addr = encodeAddressSync(hexAddr);
         }
       } else {
         // SS58 address provided
@@ -533,11 +533,14 @@ const Account: React.FC = () => {
     if (!amount) return '-';
     try {
       const num = BigInt(amount);
-      // Assume 12 decimals for now (Resonance default)
-      const divisor = BigInt(10 ** 12);
+      // Get chain properties for proper decimal formatting
+      const chainProps = chain ? getCachedChainProperties(chain.genesis) : null;
+      const decimals = chainProps?.tokenDecimals || 12; // Default to 12 if not found
+      
+      const divisor = BigInt(10 ** decimals);
       const whole = num / divisor;
       const fraction = num % divisor;
-      return `${whole.toString()}.${fraction.toString().padStart(12, '0').slice(0, 4)}`;
+      return `${whole.toString()}.${fraction.toString().padStart(decimals, '0').slice(0, 4)}`;
     } catch {
       return amount;
     }
