@@ -15,6 +15,7 @@ import type { CallInfo } from "../utils/metadata";
 
 import "./BlockExtrinsics.css";
 import "./ExtrinsicEvents.css";
+import "./BlockDetail.css";
 
 // Types
 interface BlockDetailData {
@@ -269,9 +270,11 @@ const BlockDetail: React.FC = () => {
   if (blockData.loading) {
     return (
       <div className="container mt-5">
-        <div className="text-center">
-          <Spinner animation="border" role="status" className="mb-3" />
-          <p>Loading block data...</p>
+        <div className="loading-container">
+          <div className="text-center">
+            <Spinner animation="border" role="status" className="mb-3" />
+            <p>Loading block data...</p>
+          </div>
         </div>
       </div>
     );
@@ -297,7 +300,7 @@ const BlockDetail: React.FC = () => {
   ) || [];
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 block-detail-container">
       <div className="d-flex align-items-center mb-4">
         <Button variant="outline-secondary" size="sm" onClick={handleBack}>
           ← Back to {chain.name}
@@ -305,31 +308,38 @@ const BlockDetail: React.FC = () => {
         <h2 className="ms-3 mb-0">Block #{blockData.blockNumber}</h2>
       </div>
 
-      <Card className={`${themeClasses.card} mb-4`}>
+      <Card className={`${themeClasses.card} block-info-card block-detail-section`}>
         <Card.Header>
           <h5 className="mb-0">Block Information</h5>
         </Card.Header>
         <Card.Body>
-          <div className="row">
-            <div className="col-md-6">
-              <h6 className="text-muted mb-2">Block Hash</h6>
+          <div className="row info-grid">
+            <div className="col-md-6 info-grid-item">
+              <h6 className="block-section-header">Block Hash</h6>
               <p className="font-monospace small text-break">{blockData.blockHash}</p>
             </div>
-            <div className="col-md-6">
-              <h6 className="text-muted mb-2">Parent Hash</h6>
+            <div className="col-md-6 info-grid-item">
+              <h6 className="block-section-header">Parent Hash</h6>
               <p className="font-monospace small text-break">
-                {blockData.block?.header?.parentHash || 'N/A'}
+                {blockData.block?.header?.parentHash ? (
+                  <Link 
+                    to={`/chains/${chainId}/block/${blockData.block.header.parentHash}`}
+                    className="hash-link"
+                  >
+                    {blockData.block.header.parentHash}
+                  </Link>
+                ) : 'N/A'}
               </p>
             </div>
           </div>
           {formattedAuthor && (
             <div className="row mt-3">
               <div className="col-12">
-                <h6 className="text-muted mb-2">Miner</h6>
+                <h6 className="block-section-header">Miner</h6>
                 <p className="font-monospace small text-break">
                   <Link 
                     to={`/chains/${chainId}/account/${formattedAuthor}`}
-                    className="text-decoration-none"
+                    className="address-link"
                   >
                     {formattedAuthor}
                   </Link>
@@ -337,21 +347,21 @@ const BlockDetail: React.FC = () => {
               </div>
             </div>
           )}
-          <div className="row mt-3">
-            <div className="col-md-4">
-              <h6 className="text-muted mb-2">State Root</h6>
+          <div className="row mt-3 info-grid">
+            <div className="col-md-4 info-grid-item">
+              <h6 className="block-section-header">State Root</h6>
               <p className="font-monospace small text-truncate">
                 {blockData.block?.header?.stateRoot || 'N/A'}
               </p>
             </div>
-            <div className="col-md-4">
-              <h6 className="text-muted mb-2">Extrinsics Root</h6>
+            <div className="col-md-4 info-grid-item">
+              <h6 className="block-section-header">Extrinsics Root</h6>
               <p className="font-monospace small text-truncate">
                 {blockData.block?.header?.extrinsicsRoot || 'N/A'}
               </p>
             </div>
-            <div className="col-md-4">
-              <h6 className="text-muted mb-2">Extrinsics Count</h6>
+            <div className="col-md-4 info-grid-item">
+              <h6 className="block-section-header">Extrinsics Count</h6>
               <p>{blockData.extrinsicsData?.length || 0}</p>
             </div>
           </div>
@@ -359,12 +369,12 @@ const BlockDetail: React.FC = () => {
       </Card>
 
       {transactions.length > 0 && (
-        <Card className={`${themeClasses.card} mb-4`}>
+        <Card className={`${themeClasses.card} block-detail-section`}>
           <Card.Header>
             <h5 className="mb-0">Transactions</h5>
           </Card.Header>
           <Card.Body>
-            <Table responsive hover className={themeClasses.table}>
+            <Table responsive hover className={`${themeClasses.table} transactions-table`}>
               <thead>
                 <tr>
                   <th>Extrinsic</th>
@@ -380,12 +390,12 @@ const BlockDetail: React.FC = () => {
                   tx.events!.transfers.map((transfer, tIdx) => (
                     <tr key={`${tx.index}-${tIdx}`}>
                       <td>
-                        <Badge bg="secondary">#{tx.index}</Badge>
+                        <Badge bg="secondary" className="extrinsic-index-badge">#{tx.index}</Badge>
                       </td>
                       <td>
                         <Link 
                           to={`/chains/${chainId}/account/${transfer.from}`}
-                          className="font-monospace small text-decoration-none"
+                          className="font-monospace small address-link"
                         >
                           {transfer.from}
                         </Link>
@@ -393,15 +403,15 @@ const BlockDetail: React.FC = () => {
                       <td>
                         <Link 
                           to={`/chains/${chainId}/account/${transfer.to}`}
-                          className="font-monospace small text-decoration-none"
+                          className="font-monospace small address-link"
                         >
                           {transfer.to}
                         </Link>
                       </td>
-                      <td className="font-monospace small">
+                      <td className="font-monospace small amount-display">
                         {transfer.amountHuman}
                       </td>
-                      <td className="font-monospace small">
+                      <td className="font-monospace small amount-display">
                         {tx.events?.feePaid?.amountHuman || tx.partialFeeHuman || '-'}
                       </td>
                       <td>
@@ -417,7 +427,7 @@ const BlockDetail: React.FC = () => {
       )}
 
       {blockData.extrinsicsData && blockData.extrinsicsData.length > 0 && (
-        <Card className={`${themeClasses.card} mb-4`}>
+        <Card className={`${themeClasses.card} block-detail-section`}>
           <Card.Header>
             <h5 className="mb-0">Extrinsics ({blockData.extrinsicsData.length})</h5>
           </Card.Header>
@@ -429,7 +439,7 @@ const BlockDetail: React.FC = () => {
                     <div>
                       <strong>Extrinsic #{ext.index}</strong>
                       {ext.parsed.section && ext.parsed.method && (
-                        <Badge bg="primary" className="ms-2">
+                        <Badge bg="primary" className="ms-2 method-badge">
                           {ext.parsed.section}.{ext.parsed.method}
                         </Badge>
                       )}
@@ -439,38 +449,100 @@ const BlockDetail: React.FC = () => {
                     </div>
                     <div>
                       {ext.parsed.ok ? (
-                        <Badge bg="success">Success</Badge>
+                        <Badge className="status-badge-success">Success</Badge>
                       ) : (
-                        <Badge bg="danger">Failed</Badge>
+                        <Badge className="status-badge-failed">Failed</Badge>
                       )}
                     </div>
                   </Card.Header>
                   <Card.Body>
                     {ext.parsed.isSigned && (
-                      <div className="mb-2">
-                        <strong>Sender:</strong> {ext.parsed.sender || 'Unknown'}
-                        {ext.parsed.nonce && <span className="ms-3"><strong>Nonce:</strong> {ext.parsed.nonce}</span>}
-                        {ext.parsed.tipHuman && <span className="ms-3"><strong>Tip:</strong> {ext.parsed.tipHuman}</span>}
+                      <div className="extrinsic-details mb-3">
+                        <div className="extrinsic-detail-row">
+                          <span className="extrinsic-detail-label">Signer:</span>
+                          {ext.parsed.sender ? (
+                            <Link 
+                              to={`/chains/${chainId}/account/${ext.parsed.sender}`}
+                              className="font-monospace small address-link"
+                            >
+                              {ext.parsed.sender}
+                            </Link>
+                          ) : 'Unknown'}
+                        </div>
+                        <div className="row mt-2">
+                          <div className="col-md-6">
+                            {ext.parsed.nonce !== undefined && (
+                              <div className="extrinsic-detail-row">
+                                <span className="extrinsic-detail-label">Nonce:</span>
+                                <Badge bg="info">{ext.parsed.nonce}</Badge>
+                              </div>
+                            )}
+                          </div>
+                          <div className="col-md-6">
+                            {ext.parsed.tipHuman && (
+                              <div className="extrinsic-detail-row">
+                                <span className="extrinsic-detail-label">Tip:</span>
+                                <span className="font-monospace small amount-display">{ext.parsed.tipHuman}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
                     {ext.partialFeeHuman && (
-                      <div className="mb-2">
-                        <strong>Estimated Fee:</strong> {ext.partialFeeHuman}
+                      <div className="extrinsic-detail-row mb-2">
+                        <span className="extrinsic-detail-label">Estimated Fee:</span>
+                        <span className="font-monospace small amount-display">{ext.partialFeeHuman}</span>
                       </div>
                     )}
                     {ext.events && ext.events.transfers.length > 0 && (
-                      <div>
-                        <h6>Transfers:</h6>
-                        {ext.events.transfers.map((transfer, i) => (
-                          <div key={i} className="small">
-                            {transfer.from} → {transfer.to}: {transfer.amountHuman}
-                          </div>
-                        ))}
+                      <div className="mb-3">
+                        <h6 className="text-muted">Transfers:</h6>
+                        <div className="table-responsive">
+                          <table className="table table-sm transfer-table">
+                            <tbody>
+                              {ext.events.transfers.map((transfer, i) => (
+                                <tr key={i}>
+                                  <td className="border-0 ps-0">
+                                    <Link 
+                                      to={`/chains/${chainId}/account/${transfer.from}`}
+                                      className="font-monospace small address-link"
+                                    >
+                                      {transfer.from}
+                                    </Link>
+                                  </td>
+                                  <td className="border-0 text-center arrow-cell">→</td>
+                                  <td className="border-0">
+                                    <Link 
+                                      to={`/chains/${chainId}/account/${transfer.to}`}
+                                      className="font-monospace small address-link"
+                                    >
+                                      {transfer.to}
+                                    </Link>
+                                  </td>
+                                  <td className="border-0 text-end pe-0">
+                                    <span className="font-monospace small amount-display">{transfer.amountHuman}</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     )}
                     {ext.events?.feePaid && (
-                      <div className="mt-2">
-                        <strong>Fee Paid:</strong> {ext.events.feePaid.amountHuman} by {ext.events.feePaid.payer}
+                      <div className="extrinsic-detail-row mt-2">
+                        <span className="extrinsic-detail-label">Fee Paid:</span>
+                        <div>
+                          <span className="font-monospace small amount-display">{ext.events.feePaid.amountHuman}</span>{' '}
+                          by{' '}
+                          <Link 
+                            to={`/chains/${chainId}/account/${ext.events.feePaid.payer}`}
+                            className="font-monospace small address-link"
+                          >
+                            {ext.events.feePaid.payer}
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </Card.Body>

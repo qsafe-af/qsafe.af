@@ -45,11 +45,20 @@ export function hexToU8a(hex: string): Uint8Array {
 }
 
 export function readCompactInt(a: Uint8Array, o: number): [bigint, number] {
+  if (o >= a.length) {
+    console.warn(`[readCompactInt] Offset ${o} is beyond array length ${a.length}`);
+    return [0n, 0];
+  }
+  
   const b0 = a[o];
   const mode = b0 & 3;
   if (mode === 0) return [BigInt(b0 >>> 2), 1];
-  if (mode === 1) return [BigInt(((a[o] | (a[o + 1] << 8)) >>> 2) >>> 0), 2];
+  if (mode === 1) {
+    if (o + 1 >= a.length) return [0n, 1];
+    return [BigInt(((a[o] | (a[o + 1] << 8)) >>> 2) >>> 0), 2];
+  }
   if (mode === 2) {
+    if (o + 3 >= a.length) return [0n, 1];
     return [
       BigInt(
         ((a[o] | (a[o + 1] << 8) | (a[o + 2] << 16) | (a[o + 3] << 24)) >>> 2) >>> 0
@@ -58,8 +67,13 @@ export function readCompactInt(a: Uint8Array, o: number): [bigint, number] {
     ];
   }
   const len = (b0 >>> 2) + 4;
+  if (len > 67 || o + len >= a.length) {
+    console.warn(`[readCompactInt] Invalid length ${len} at offset ${o}`);
+    return [0n, 1];
+  }
   let v = 0n;
   for (let i = 0; i < len; i++) {
+    if (o + 1 + i >= a.length) break;
     v |= BigInt(a[o + 1 + i]) << (8n * BigInt(i));
   }
   return [v, 1 + len];
@@ -68,6 +82,14 @@ export function readCompactInt(a: Uint8Array, o: number): [bigint, number] {
 export function readScaleBytes(a: Uint8Array, o: number): [Uint8Array, number] {
   const [len, r] = readCompactInt(a, o);
   const L = Number(len);
+  
+  // Bounds checking
+  if (o + r + L > a.length) {
+    console.warn(`[readScaleBytes] Attempting to read ${L} bytes at offset ${o + r}, but only ${a.length - o - r} bytes available`);
+    // Return what we can read
+    return [a.slice(o + r), a.length - o];
+  }
+  
   return [a.slice(o + r, o + r + L), r + L];
 }
 
@@ -184,9 +206,40 @@ export function parseExtrinsicHeaderAndCall(
       const [_nonce, nRead] = readCompactInt(x, i);
       i += nRead;
       nonce = _nonce;
+      
+      // For v5, there might be additional signed extensions before tip
+      // Try to detect if we're reading the right data
       const [_tip, tRead] = readCompactInt(x, i);
-      i += tRead;
-      tip = _tip;
+      
+      // Validate tip is reasonable - tips over 1000 tokens are extremely rare
+      const MAX_REASONABLE_TIP = 1000n * (10n ** BigInt(decimals));
+      if (_tip > MAX_REASONABLE_TIP) {
+        console.warn('[ExtrinsicDecoder] Unreasonably large tip detected:', _tip.toString());
+        console.warn('[ExtrinsicDecoder] Hex context:', Array.from(x.slice(Math.max(0, i - 10), Math.min(i + 20, x.length))).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        
+        // For v5, there might be an extra compact length field before tip
+        if (vers === 5 && tRead === 1 && _tip < 256n) {
+          // This might actually be a length prefix, skip it and read actual tip
+          i += tRead;
+          const [_actualTip, actualTRead] = readCompactInt(x, i);
+          if (_actualTip <= MAX_REASONABLE_TIP) {
+            tip = _actualTip;
+            i += actualTRead;
+          } else {
+            // Still unreasonable, default to 0
+            tip = 0n;
+            i += tRead;
+          }
+        } else {
+          // Default to 0 for unreasonable tips
+          tip = 0n;
+          i += tRead;
+        }
+      } else {
+        tip = _tip;
+        i += tRead;
+      }
+      
       // signed extensions beyond tip are ignored; we align using metadata next
     }
 

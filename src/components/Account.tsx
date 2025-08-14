@@ -143,7 +143,10 @@ const ACCOUNT_TRANSFERS_QUERY = `
       orderBy: timestamp_DESC
       where: {
         extrinsicHash_isNull: false
-        AND: { from: { id_eq: $accountId }, OR: { to: { id_eq: $accountId } } }
+        OR: [
+          { from: { id_eq: $accountId } }
+          { to: { id_eq: $accountId } }
+        ]
       }
     ) {
       edges {
@@ -220,7 +223,7 @@ const Account: React.FC = () => {
   const EVENTS_PER_PAGE = 50;
   const chain = chainId ? getChain(chainId) : null;
 
-  const fetchGraphQL = useCallback(async (query: string, variables: Record<string, any>) => {
+  const fetchGraphQL = useCallback(async (query: string, variables: Record<string, unknown>) => {
     if (!chain?.indexer) {
       throw new Error("No indexer endpoint configured for this chain");
     }
@@ -274,41 +277,66 @@ const Account: React.FC = () => {
     return data.data;
   }, [chain]);
 
-  const processEvents = useCallback((rawEvents: Array<Record<string, any>>, isTransfer: boolean = false): AccountEvent[] => {
+  const processEvents = useCallback((rawEvents: Array<Record<string, unknown>>, isTransfer: boolean = false): AccountEvent[] => {
     return rawEvents.map(event => {
+      // Type assertions for the event structure
+      const eventData = event as {
+        id?: string;
+        type?: string;
+        amount?: string;
+        fee?: string;
+        extrinsicHash?: string;
+        timestamp?: string;
+        block?: { height?: number; timestamp?: string };
+        event?: { timestamp?: string; block?: { height?: number } };
+        from?: { id?: string } | string;
+        to?: { id?: string } | string;
+        account?: { id?: string };
+      };
+
       const processed: AccountEvent = {
-        id: event.id,
-        type: isTransfer ? 'Transfer' : (event.type || 'Unknown'),
-        timestamp: new Date(event.timestamp || event.event?.timestamp || event.block?.timestamp),
-        blockHeight: event.block?.height || event.event?.block?.height || 0,
+        id: String(eventData.id || ''),
+        type: isTransfer ? 'Transfer' : (eventData.type || 'Unknown'),
+        timestamp: new Date(eventData.timestamp || eventData.event?.timestamp || eventData.block?.timestamp || Date.now()),
+        blockHeight: eventData.block?.height || eventData.event?.block?.height || 0,
       };
 
       // Add amount if present
-      if (event.amount) {
-        processed.amount = event.amount;
+      if (eventData.amount) {
+        processed.amount = String(eventData.amount);
       }
       
       // Add fee if present (for transfers)
-      if (event.fee) {
-        processed.fee = event.fee;
+      if (eventData.fee) {
+        processed.fee = String(eventData.fee);
       }
       
       // Add extrinsicHash if present
-      if (event.extrinsicHash) {
-        processed.extrinsicHash = event.extrinsicHash;
+      if (eventData.extrinsicHash) {
+        processed.extrinsicHash = String(eventData.extrinsicHash);
       }
       
-      // Add from/to for transfers
-      if (event.from?.id) {
-        processed.from = event.from.id;
+      // Add from/to - check both transfer format and balance event format
+      if (typeof eventData.from === 'object' && eventData.from?.id) {
+        processed.from = String(eventData.from.id);
+      } else if (eventData.from && typeof eventData.from === 'string') {
+        processed.from = eventData.from;
       }
-      if (event.to?.id) {
-        processed.to = event.to.id;
+      
+      if (typeof eventData.to === 'object' && eventData.to?.id) {
+        processed.to = String(eventData.to.id);
+      } else if (eventData.to && typeof eventData.to === 'string') {
+        processed.to = eventData.to;
+      }
+      
+      // If we have both from and to, this is definitely a transfer
+      if (processed.from && processed.to) {
+        processed.type = 'Transfer';
       }
       
       // Set accountId for non-transfer events
-      if (!event.from && !event.to && event.account?.id) {
-        processed.accountId = event.account.id;
+      if (!eventData.from && !eventData.to && eventData.account?.id) {
+        processed.accountId = String(eventData.account.id);
       }
 
       return processed;
@@ -415,7 +443,7 @@ const Account: React.FC = () => {
           console.log('Full response structure:', JSON.stringify(eventsData, null, 2));
         }
         
-        const transferNodes = eventsData.transfersConnection?.edges?.map((edge: any) => edge.node) || [];
+        const transferNodes = eventsData.transfersConnection?.edges?.map((edge: { node: Record<string, unknown> }) => edge.node) || [];
         console.log('Transfer Nodes:', transferNodes);
         console.log('Number of transfer nodes:', transferNodes.length);
         
@@ -446,7 +474,7 @@ const Account: React.FC = () => {
           console.log('Full response structure:', JSON.stringify(eventsData, null, 2));
         }
         
-        const eventNodes = eventsData.balanceEventsConnection?.edges?.map((edge: any) => edge.node) || [];
+        const eventNodes = eventsData.balanceEventsConnection?.edges?.map((edge: { node: Record<string, unknown> }) => edge.node) || [];
         console.log('Balance Event Nodes:', eventNodes);
         console.log('Number of balance event nodes:', eventNodes.length);
         
@@ -506,15 +534,18 @@ const Account: React.FC = () => {
 
   const filteredEvents = events.filter(event => {
     const eventType = event.type?.toLowerCase() || '';
+    // Also check if it's a transfer based on from/to fields
+    const isTransfer = eventType === 'transfer' || (event.from && event.to);
+    
     switch (filter) {
       case 'transfers':
-        return eventType === 'transfer';
+        return isTransfer;
       case 'minted':
         return eventType === 'minted';
       case 'burned':
         return eventType === 'burned' || eventType === 'slashed';
       case 'other':
-        return eventType !== 'transfer' && eventType !== 'minted' && eventType !== 'burned' && eventType !== 'slashed';
+        return !isTransfer && eventType !== 'minted' && eventType !== 'burned' && eventType !== 'slashed';
       default:
         return true;
     }
@@ -713,7 +744,7 @@ const Account: React.FC = () => {
                         {formatAmount(event.amount)}
                       </td>
                       <td>
-                        {event.type.includes('Transfer') && event.from && event.to && (
+                        {event.from && event.to && (
                           <div className="small">
                             {event.from === ss58Address ? (
                               <>
