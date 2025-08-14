@@ -5,6 +5,7 @@ import ExtrinsicEvents from './ExtrinsicEvents';
 import { parseExtrinsicHeaderAndCall } from '../utils/polkadot/extrinsicDecoder';
 import type { ParsedExtrinsic } from '../utils/polkadot/extrinsicDecoder';
 import { getCachedChainProperties } from '../utils/ss58';
+import type { MetadataInfo } from '../utils/metadata';
 import './BlockExtrinsics.css';
 
 interface BlockExtrinsicProps {
@@ -13,7 +14,7 @@ interface BlockExtrinsicProps {
   events: SubstrateEvent[];
   chain?: Chain;
   blockHash?: string;
-  metadata?: any;
+  metadata?: MetadataInfo;
 }
 
 const BlockExtrinsic: React.FC<BlockExtrinsicProps> = ({ extrinsic, index, events, chain, metadata }) => {
@@ -36,6 +37,7 @@ const BlockExtrinsic: React.FC<BlockExtrinsicProps> = ({ extrinsic, index, event
 
         // Use provided metadata or create empty call map
         const callMap = metadata?.callMap || new Map();
+        console.log(`[BlockExtrinsic #${index}] Metadata available:`, !!metadata, 'CallMap size:', callMap.size);
         
         const parsed = parseExtrinsicHeaderAndCall(
           extrinsic,
@@ -44,6 +46,8 @@ const BlockExtrinsic: React.FC<BlockExtrinsicProps> = ({ extrinsic, index, event
           callMap,
           symbol
         );
+        
+        console.log(`[BlockExtrinsic #${index}] Parsed extrinsic:`, parsed.section, parsed.method);
 
         setParsedExtrinsic(parsed);
       } catch (error) {
@@ -55,7 +59,7 @@ const BlockExtrinsic: React.FC<BlockExtrinsicProps> = ({ extrinsic, index, event
     };
 
     parseExtrinsic();
-  }, [extrinsic, chain]);
+  }, [extrinsic, chain, metadata, index]);
 
   if (loading) {
     return (

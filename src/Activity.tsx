@@ -14,8 +14,11 @@ import { isQuantumChain } from "./decoder";
 import { decodeEnhancedEvents } from "./decoders/eventDecoder";
 import { getSystemEventsStorageKey } from "./generated/resonanceRuntimeMappings";
 import QuantumBadge from "./QuantumBadge";
+import ChainStatus from "./components/ChainStatus";
 import type { BlockHeader, ConnectionStatus, SubstrateEvent } from "./types";
 import { themeClasses } from "./theme-utils";
+import { fetchMetadata } from "./utils/metadata";
+import type { MetadataInfo } from "./utils/metadata";
 import "./Activity.css";
 
 const Activity: React.FC = () => {
@@ -24,6 +27,8 @@ const Activity: React.FC = () => {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+  const [blockMetadata, setBlockMetadata] = useState<Map<string, MetadataInfo>>(new Map());
+  const [metadataBySpecVersion, setMetadataBySpecVersion] = useState<Map<number, MetadataInfo>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
   const subscriptionIdRef = useRef<string | null>(null);
 
@@ -34,6 +39,9 @@ const Activity: React.FC = () => {
   useEffect(() => {
     // Clear previous blocks when chain changes
     setBlocks([]);
+    // Clear metadata caches when chain changes
+    setBlockMetadata(new Map());
+    setMetadataBySpecVersion(new Map());
 
     // Only connect if chain has endpoints
     if (!chain?.endpoints || chain.endpoints.length === 0) {
@@ -160,6 +168,7 @@ const Activity: React.FC = () => {
                   `Updated blocks after hash fetch:`,
                   updated.find((b) => b.number === blockNumber),
                 );
+                console.log(`[Activity] Block ${blockNumber} hash updated to ${actualHash}`);
                 return updated;
               });
 
@@ -179,6 +188,7 @@ const Activity: React.FC = () => {
                   type: "getRuntimeVersion",
                   data: { blockNumber, blockHash: actualHash },
                 });
+                console.log(`[Activity] Sending getRuntimeVersion request for block ${blockNumber} with hash ${actualHash}`);
                 wsRef.current.send(JSON.stringify(getRuntimeMessage));
 
                 // Get the storage key for System.Events
@@ -322,11 +332,59 @@ const Activity: React.FC = () => {
                 ),
               );
             } else if (request?.type === "getRuntimeVersion") {
-              const { blockNumber } = request.data;
+              const { blockNumber, blockHash } = request.data;
               console.log(
-                `Runtime version for block ${blockNumber}:`,
+                `[Activity] Runtime version for block ${blockNumber}:`,
                 data.result,
               );
+              
+              // Fetch metadata for this runtime version
+              if (data.result && data.result.specVersion && endpoint) {
+                const specVersion = data.result.specVersion;
+                console.log(`[Activity] Processing runtime version ${specVersion} for block ${blockNumber} (hash: ${blockHash})`);
+                
+                // Check if we already have metadata for this spec version
+                if (!metadataBySpecVersion.has(specVersion)) {
+                  console.log(`[Activity] Fetching metadata for spec version ${specVersion}...`);
+                  fetchMetadata(endpoint, blockHash)
+                    .then(metadata => {
+                      // Store metadata by spec version for reuse
+                      setMetadataBySpecVersion(prev => {
+                        const updated = new Map(prev);
+                        updated.set(specVersion, metadata);
+                        return updated;
+                      });
+                      
+                      // Also store for this specific block
+                      setBlockMetadata(prev => {
+                        const updated = new Map(prev);
+                        updated.set(blockHash, metadata);
+                        console.log(`[Activity] Stored metadata for block hash ${blockHash}, map now has ${updated.size} entries`);
+                        return updated;
+                      });
+                      
+                      console.log(`[Activity] Fetched metadata for spec version ${specVersion}: ${metadata.callMap.size} pallets`);
+                      
+                      // Force re-render of blocks that use this metadata
+                      setBlocks(prevBlocks => [...prevBlocks]);
+                    })
+                    .catch(error => {
+                      console.error(`Failed to fetch metadata for block ${blockNumber}:`, error);
+                    });
+                } else {
+                  // Reuse existing metadata for this spec version
+                  const metadata = metadataBySpecVersion.get(specVersion);
+                  if (metadata) {
+                    setBlockMetadata(prev => {
+                      const updated = new Map(prev);
+                      updated.set(blockHash, metadata);
+                      console.log(`[Activity] Reusing metadata for block hash ${blockHash}, map now has ${updated.size} entries`);
+                      return updated;
+                    });
+                    console.log(`[Activity] Reusing metadata for block ${blockNumber} (spec version ${specVersion})`);
+                  }
+                }
+              }
             } else if (request?.type === "getBlock") {
               const { blockNumber } = request.data;
               console.log(
@@ -637,6 +695,10 @@ const Activity: React.FC = () => {
         </Card.Body>
       </Card>
 
+      {chain?.endpoints && chain.endpoints.length > 0 && connectionStatus === "connected" && (
+        <ChainStatus ws={wsRef.current} connectionStatus={connectionStatus} />
+      )}
+
       <Card className="mb-4">
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
@@ -657,16 +719,24 @@ const Activity: React.FC = () => {
             </p>
           ) : (
             <div className="activity-blocks-events">
-              {blocks.map((block, index) => (
-                <div key={`${block.number}-${index}`} className="block-event-row">
-                  <div className="block-column">
-                    <Block block={block} index={index} />
+              {blocks.map((block, index) => {
+                const metadata = block.hash && !block.hash.startsWith('pending_') ? blockMetadata.get(block.hash) : undefined;
+                console.log(`[Activity] Rendering block ${block.number} with hash ${block.hash}, metadata available: ${!!metadata}`);
+                return (
+                  <div key={`${block.number}-${index}`} className="block-event-row">
+                    <div className="block-column">
+                      <Block block={block} index={index} />
+                    </div>
+                    <div className="event-column">
+                      <BlockExtrinsics 
+                        block={block} 
+                        chain={chain} 
+                        metadata={metadata} 
+                      />
+                    </div>
                   </div>
-                  <div className="event-column">
-                    <BlockExtrinsics block={block} chain={chain} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card.Body>
