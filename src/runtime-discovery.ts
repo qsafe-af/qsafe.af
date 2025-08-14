@@ -269,7 +269,9 @@ export async function getBlockTimestamps(endpoint: string, blockNumbers: number[
     // Create all requests in parallel
     const timestampPromises = blockNumbers.map(async (blockNumber) => {
       try {
-        const hash = await blockHashAt(client, blockNumber);
+        // Use block 1 instead of block 0 for timestamp (block 0 might not have timestamp data)
+        const effectiveBlockNumber = blockNumber === 0 ? 1 : blockNumber;
+        const hash = await blockHashAt(client, effectiveBlockNumber);
         
         // The timestamp is stored at Timestamp::Now
         const timestampKey = "0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb";
@@ -284,18 +286,23 @@ export async function getBlockTimestamps(endpoint: string, blockNumbers: number[
             timestampMs += bytes[i] * Math.pow(256, i);
           }
           
-          if (timestampMs > 0 && timestampMs < Date.now() * 2) {
+          // Check if timestamp is valid (must be positive and not in the future)
+          // Allow old timestamps from genesis
+          if (timestampMs > 0 && timestampMs <= Date.now() + 60000) { // Allow 1 minute future tolerance
             return { blockNumber, timestamp: timestampMs };
           }
         }
         
         // Fallback to estimation
         const blocksAgo = currentHeight - blockNumber;
-        return { blockNumber, timestamp: Date.now() - (blocksAgo * 6000) };
+        const estimatedTimestamp = Date.now() - (blocksAgo * 6000);
+        return { blockNumber, timestamp: estimatedTimestamp };
       } catch (e) {
         // Fallback to estimation on error
+        console.log(`Block ${blockNumber}: error fetching timestamp - ${e}`);
         const blocksAgo = currentHeight - blockNumber;
-        return { blockNumber, timestamp: Date.now() - (blocksAgo * 6000) };
+        const estimatedTimestamp = Date.now() - (blocksAgo * 6000);
+        return { blockNumber, timestamp: estimatedTimestamp };
       }
     });
     
