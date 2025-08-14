@@ -524,10 +524,6 @@ const Nodes: React.FC = () => {
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
         break;
-      case 'implementation':
-        aValue = a.address?.toLowerCase() || '';
-        bValue = b.address?.toLowerCase() || '';
-        break;
       case 'block':
         aValue = a.blockHeight || 0;
         bValue = b.blockHeight || 0;
@@ -629,21 +625,13 @@ const Nodes: React.FC = () => {
             <Table responsive hover className={themeClasses.table}>
               <thead>
                 <tr>
-                  <th 
-                    onClick={() => handleSort('name')} 
+                  <th onClick={() => handleSort('name')} 
                     className="sortable-header"
                     style={{ cursor: 'pointer', userSelect: 'none' }}
                   >
                     Node {getSortIcon('name')}
                   </th>
-                  <th 
-                    onClick={() => handleSort('implementation')} 
-                    className="sortable-header"
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                  >
-                    Implementation {getSortIcon('implementation')}
-                  </th>
-                  <th 
+                  <th
                     onClick={() => handleSort('block')} 
                     className="sortable-header"
                     style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -693,29 +681,24 @@ const Nodes: React.FC = () => {
                     <td>
                       <div>
                         <strong>{node.name}</strong>
-                        {node.version && (
-                          <div className="small text-muted">
-                            {node.version}
+                        {node.address && (
+                          <div className="small text-muted font-monospace">
+                            {node.address}
                           </div>
                         )}
                       </div>
                     </td>
                     <td>
-                      {node.address ? (
-                        <span className="small font-monospace">{node.address}</span>
-                      ) : '-'}
-                    </td>
-                    <td>
                       {node.blockHeight ? (
                         <span className="font-monospace">
-                          #{node.blockHeight.toLocaleString()}
+                          {node.blockHeight.toLocaleString()}
                         </span>
                       ) : '-'}
                     </td>
                     <td>
                       {node.finalized ? (
                         <span className="font-monospace">
-                          #{node.finalized.toLocaleString()}
+                          {node.finalized.toLocaleString()}
                         </span>
                       ) : '-'}
                     </td>
