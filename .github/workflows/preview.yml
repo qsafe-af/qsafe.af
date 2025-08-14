@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'explorer/**'
+      - '**'
       - '.github/workflows/preview.yml'
 
 concurrency:
@@ -29,19 +29,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: explorer/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        working-directory: explorer
         run: yarn install --frozen-lockfile
 
       - name: Build project
-        working-directory: explorer
         run: yarn build
 
       - name: Deploy Preview
         id: deploy
-        working-directory: explorer
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

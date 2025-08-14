@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: explorer/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Get yarn cache directory
         id: yarn-cache-dir
@@ -59,23 +59,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            explorer/dist
-            explorer/.vite
+            dist
+            .vite
           key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-build-
 
       - name: Install dependencies
-        working-directory: explorer
         run: |
           yarn install --frozen-lockfile --network-timeout 100000
           
       - name: Lint code
-        working-directory: explorer
         run: yarn lint || true
 
       - name: Build project
-        working-directory: explorer
         run: |
           echo "Building for production..."
           yarn build
@@ -109,7 +106,6 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: deploy
-        working-directory: explorer
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -179,8 +175,8 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            explorer/dist
-            explorer/deploy.log
+            dist
+            deploy.log
           retention-days: 7
 
   notify:
