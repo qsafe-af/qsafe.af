@@ -97,10 +97,15 @@ const Block: React.FC<BlockProps> = ({ block, index }) => {
             <div className="block-author mt-2">
               <small className="text-muted">Miner:</small>
               <div
-                className="font-monospace text-muted"
+                className="font-monospace"
                 style={{ fontSize: "0.875rem" }}
               >
-                {formattedAuthor}
+                <Link
+                  to={`/chains/${chainId}/account/${formattedAuthor}`}
+                  className="text-decoration-none text-muted"
+                >
+                  {formattedAuthor}
+                </Link>
               </div>
             </div>
           )}
