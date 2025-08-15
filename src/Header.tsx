@@ -16,22 +16,36 @@ const Header = () => {
   const loc = useLocation();
   const { pathname } = loc;
   const segments = pathname.split("/").filter((c) => !!c);
-  
+
   // Breadcrumb segments that should not be clickable links
-  const ignoredCrumbs = ['account', 'block'];
+  const ignoredCrumbs = ["account", "block"];
+
+  // Extract current chain ID and route if we're on a chain-specific route
+  let currentChainId: string | null = null;
+  let currentRoute: string | null = null;
+  if (
+    segments.length >= 2 &&
+    segments[0] === "chains" &&
+    segments[1] !== undefined
+  ) {
+    currentChainId = segments[1];
+    if (segments.length >= 3) {
+      currentRoute = segments[2];
+    }
+  }
 
   // Transform segments to show friendly names for chains
   const crumbs = segments.map((segment, i) => {
     let displayName = segment;
-    
+
     // If previous segment is "chains", try to get chain display name
-    if (i > 0 && segments[i - 1] === 'chains') {
+    if (i > 0 && segments[i - 1] === "chains") {
       const chain = getChain(segment);
       if (chain) {
         displayName = chain.displayName;
       }
     }
-    
+
     return {
       name: displayName,
       segment: segment,
@@ -79,6 +93,31 @@ const Header = () => {
               )}
             </NavDropdown>
           </Nav>
+          {currentChainId && (
+            <Nav className="ms-auto me-3">
+              <Nav.Link
+                href={`/chains/${currentChainId}/activity`}
+                active={currentRoute === "activity"}
+              >
+                <i className="bi bi-activity me-1"></i>
+                Activity
+              </Nav.Link>
+              <Nav.Link
+                href={`/chains/${currentChainId}/stats`}
+                active={currentRoute === "stats"}
+              >
+                <i className="bi bi-graph-up me-1"></i>
+                Mining Stats
+              </Nav.Link>
+              <Nav.Link
+                href={`/chains/${currentChainId}/nodes`}
+                active={currentRoute === "nodes"}
+              >
+                <i className="bi bi-hdd-network me-1"></i>
+                Network Nodes
+              </Nav.Link>
+            </Nav>
+          )}
           <Nav className="ms-auto">
             <CaseToggle />
             <ThemeToggle />
@@ -94,7 +133,9 @@ const Header = () => {
                 </Breadcrumb.Item>
               ) : ignoredCrumbs.includes(crumb.segment) ? (
                 <Breadcrumb.Item key={cI}>
-                  <span style={{ color: 'inherit', cursor: 'default' }}>{crumb.name}</span>
+                  <span style={{ color: "inherit", cursor: "default" }}>
+                    {crumb.name}
+                  </span>
                 </Breadcrumb.Item>
               ) : (
                 <Breadcrumb.Item key={cI} href={crumb.path}>

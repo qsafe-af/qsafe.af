@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, Badge, Alert, Button, Table, Spinner } from "react-bootstrap";
 import { BN } from '@polkadot/util';
+import { blake2AsHex } from '@polkadot/util-crypto';
 import { getChain } from "../chains";
 import { themeClasses } from "../theme-utils";
 import { decodeDigest } from "../decoders/digestDecoder";
@@ -388,36 +389,43 @@ const BlockDetail: React.FC = () => {
               <tbody>
                 {transactions.map((tx) => (
                   tx.events!.transfers.map((transfer, tIdx) => (
-                    <tr key={`${tx.index}-${tIdx}`}>
-                      <td>
-                        <Badge bg="secondary" className="extrinsic-index-badge">#{tx.index}</Badge>
-                      </td>
-                      <td>
-                        <Link 
-                          to={`/chains/${chainId}/account/${transfer.from}`}
-                          className="font-monospace small address-link"
-                        >
-                          {transfer.from}
-                        </Link>
-                      </td>
-                      <td>
-                        <Link 
-                          to={`/chains/${chainId}/account/${transfer.to}`}
-                          className="font-monospace small address-link"
-                        >
-                          {transfer.to}
-                        </Link>
-                      </td>
-                      <td className="font-monospace small amount-display">
-                        {transfer.amountHuman}
-                      </td>
-                      <td className="font-monospace small amount-display">
-                        {tx.events?.feePaid?.amountHuman || tx.partialFeeHuman || '-'}
-                      </td>
-                      <td>
-                        <Badge bg="info">{tx.parsed.nonce || '-'}</Badge>
-                      </td>
-                    </tr>
+                    <React.Fragment key={`${tx.index}-${tIdx}`}>
+                      <tr className="tx-hash-row">
+                        <td colSpan={6} className="font-monospace small text-muted">
+                          Hash: {blake2AsHex(tx.hex, 256)}
+                        </td>
+                      </tr>
+                      <tr className="tx-data-row">
+                        <td>
+                          <Badge bg="secondary" className="extrinsic-index-badge">#{tx.index}</Badge>
+                        </td>
+                        <td>
+                          <Link 
+                            to={`/chains/${chainId}/account/${transfer.from}`}
+                            className="font-monospace small address-link"
+                          >
+                            {transfer.from}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link 
+                            to={`/chains/${chainId}/account/${transfer.to}`}
+                            className="font-monospace small address-link"
+                          >
+                            {transfer.to}
+                          </Link>
+                        </td>
+                        <td className="font-monospace small amount-display">
+                          {transfer.amountHuman}
+                        </td>
+                        <td className="font-monospace small amount-display">
+                          {tx.events?.feePaid?.amountHuman || tx.partialFeeHuman || '-'}
+                        </td>
+                        <td>
+                          <Badge bg="info">{tx.parsed.nonce || '-'}</Badge>
+                        </td>
+                      </tr>
+                    </React.Fragment>
                   ))
                 ))}
               </tbody>

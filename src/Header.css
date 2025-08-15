@@ -50,3 +50,47 @@
     min-width: 8rem;
   }
 }
+
+/* Chain-specific navigation links */
+.navbar .nav-link {
+  position: relative;
+  padding: 0.5rem 1rem;
+  transition: color 0.15s ease-in-out;
+}
+
+.navbar .nav-link.active {
+  font-weight: 500;
+}
+
+.navbar .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background-color: var(--bs-link-color);
+}
+
+/* Ensure proper spacing between nav groups */
+.navbar .ms-auto.me-3 {
+  padding-right: 1rem;
+  margin-right: 1rem !important;
+}
+
+/* Dark theme support for chain navigation */
+[data-bs-theme="dark"] .navbar .ms-auto.me-3 {
+  /* No border styling needed */
+}
+
+/* Mobile responsive for chain navigation */
+@media (max-width: 991px) {
+  .navbar .ms-auto.me-3 {
+    padding-right: 0;
+    margin-right: 0 !important;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--bs-border-color);
+  }
+}

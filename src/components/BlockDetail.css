@@ -160,6 +160,20 @@
   margin-bottom: 0;
 }
 
+.transactions-table .tx-hash-row td {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bs-gray-100);
+  border-bottom: none;
+}
+
+[data-bs-theme="dark"] .transactions-table .tx-hash-row td {
+  background-color: var(--bs-gray-800);
+}
+
+.transactions-table .tx-data-row td {
+  border-top: none;
+}
+
 .transactions-table th {
   font-weight: 600;
   color: var(--bs-gray-700);
