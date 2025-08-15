@@ -69,7 +69,20 @@ const RuntimeTimeline: React.FC<RuntimeTimelineProps> = ({ endpoint, chainName }
         setCurrentBlock(currentBlockHeight);
 
         // Batch fetch all timestamps for better performance
-        const blockNumbers = runtimeSpans.map(span => span.start_block);
+        const blockNumbers: number[] = [];
+        runtimeSpans.forEach((span, index) => {
+          // Special case: block 0 doesn't have reliable timestamp, use block 1 instead
+          const startBlock = span.start_block === 0 ? 1 : span.start_block;
+          blockNumbers.push(startBlock);
+          
+          // Check if this span is active
+          const isActive = span.end_block >= currentBlockHeight || 
+                          (index === runtimeSpans.length - 1 && span.end_block === runtimeSpans[runtimeSpans.length - 1].end_block);
+          
+          if (!isActive || span.end_block < currentBlockHeight) {
+            blockNumbers.push(span.end_block);
+          }
+        });
         const timestamps = await getBlockTimestamps(endpoint, blockNumbers);
 
         // Calculate percentages and enhance spans
@@ -78,16 +91,19 @@ const RuntimeTimeline: React.FC<RuntimeTimelineProps> = ({ endpoint, chainName }
           const blockRange = span.end_block - span.start_block + 1;
           const percentage = (blockRange / totalBlocks) * 100;
           
-          // Get timestamp from batch results
-          const startTimestamp = timestamps.get(span.start_block) || undefined;
-
+          // Get timestamps from batch results
+          // Special case: block 0 doesn't have reliable timestamp, use block 1 instead
+          const startBlock = span.start_block === 0 ? 1 : span.start_block;
+          const startTimestamp = timestamps.get(startBlock) || undefined;
           const isActive = span.end_block >= currentBlockHeight || 
                          (index === runtimeSpans.length - 1 && span.end_block === runtimeSpans[runtimeSpans.length - 1].end_block);
+          const endTimestamp = isActive ? undefined : timestamps.get(span.end_block) || undefined;
 
           return {
             ...span,
             percentage,
             startTimestamp,
+            endTimestamp,
             isActive
           };
         });
@@ -300,7 +316,40 @@ const RuntimeTimeline: React.FC<RuntimeTimelineProps> = ({ endpoint, chainName }
               <tbody>
                 {[...spans].reverse().map((span) => {
                   const blocks = span.end_block - span.start_block + 1;
-                  const days = Math.floor((blocks * 6) / 86400); // Assuming 6s block time
+                  let durationDisplay = '';
+                  
+                  // Calculate duration based on timestamps
+                  if (span.startTimestamp) {
+                    let elapsedMs = 0;
+                    
+                    if (span.isActive) {
+                      // For active runtimes, calculate from start to now
+                      elapsedMs = Date.now() - span.startTimestamp;
+                    } else if (span.endTimestamp) {
+                      // For historical runtimes, calculate from start to end
+                      elapsedMs = span.endTimestamp - span.startTimestamp;
+                    }
+                    
+                    if (elapsedMs > 0) {
+                      const days = Math.floor(elapsedMs / (24 * 60 * 60 * 1000));
+                      const hours = Math.floor((elapsedMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                      const minutes = Math.floor((elapsedMs % (60 * 60 * 1000)) / (60 * 1000));
+                      
+                      if (days > 0) {
+                        durationDisplay = `${days} day${days !== 1 ? 's' : ''}`;
+                        if (hours > 0) {
+                          durationDisplay += `, ${hours} hour${hours !== 1 ? 's' : ''}`;
+                        }
+                      } else if (hours > 0) {
+                        durationDisplay = `${hours} hour${hours !== 1 ? 's' : ''}`;
+                        if (minutes > 0) {
+                          durationDisplay += `, ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                        }
+                      } else {
+                        durationDisplay = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                      }
+                    }
+                  }
                   
                   return (
                     <tr key={`${span.spec_version}-${span.start_block}`}>
@@ -315,10 +364,19 @@ const RuntimeTimeline: React.FC<RuntimeTimelineProps> = ({ endpoint, chainName }
                             Started: {formatDate(span.startTimestamp)}
                           </div>
                         )}
+                        {!span.isActive && span.endTimestamp && (
+                          <div className="text-muted" style={{ fontSize: '0.8em' }}>
+                            Ended: {formatDate(span.endTimestamp)}
+                          </div>
+                        )}
                       </td>
                       <td className="small">
-                        {blocks.toLocaleString()} blocks
-                        {days > 0 && ` (~${days} days)`}
+                        <div>{blocks.toLocaleString()} blocks</div>
+                        {durationDisplay && (
+                          <div className="text-muted" style={{ fontSize: '0.85em' }}>
+                            {durationDisplay}
+                          </div>
+                        )}
                       </td>
                       <td className="font-monospace small">
                         <OverlayTrigger
