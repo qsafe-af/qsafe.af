@@ -397,7 +397,14 @@ const BlockDetail: React.FC = () => {
                       </tr>
                       <tr className="tx-data-row">
                         <td>
-                          <Badge bg="secondary" className="extrinsic-index-badge">#{tx.index}</Badge>
+                          <Link 
+                            to={`/chains/${chainId}/extrinsic/${blockData.blockNumber}-${tx.index}`}
+                            className="text-decoration-none"
+                          >
+                            <Badge bg="secondary" className="extrinsic-index-badge">
+                              {blockData.blockNumber}-{tx.index}
+                            </Badge>
+                          </Link>
                         </td>
                         <td>
                           <Link 
@@ -445,7 +452,14 @@ const BlockDetail: React.FC = () => {
                 <Card key={ext.index} className="mb-3 extrinsic-card">
                   <Card.Header className="d-flex justify-content-between align-items-center">
                     <div>
-                      <strong>Extrinsic #{ext.index}</strong>
+                      <strong>
+                        <Link 
+                          to={`/chains/${chainId}/extrinsic/${blockData.blockNumber}-${ext.index}`}
+                          className="text-decoration-none text-body"
+                        >
+                          Extrinsic {blockData.blockNumber}-{ext.index}
+                        </Link>
+                      </strong>
                       {ext.parsed.section && ext.parsed.method && (
                         <Badge bg="primary" className="ms-2 method-badge">
                           {ext.parsed.section}.{ext.parsed.method}
