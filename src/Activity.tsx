@@ -487,7 +487,18 @@ const Activity: React.FC = () => {
             digest: header.digest, // Capture digest from header
           };
 
-          setBlocks((prevBlocks) => [newBlock, ...prevBlocks].slice(0, 20)); // Keep last 20 blocks
+          setBlocks((prevBlocks) => {
+            // Check if block already exists
+            const existingBlockIndex = prevBlocks.findIndex(b => b.number === blockNumber);
+            if (existingBlockIndex !== -1) {
+              // Block already exists, update it instead of adding duplicate
+              const updated = [...prevBlocks];
+              updated[existingBlockIndex] = newBlock;
+              return updated.slice(0, 20);
+            }
+            // Block doesn't exist, add it to the beginning
+            return [newBlock, ...prevBlocks].slice(0, 20);
+          });
 
           // Fetch the block hash via RPC (exactly as the working command line example)
           if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
