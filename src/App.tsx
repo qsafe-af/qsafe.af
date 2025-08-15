@@ -10,6 +10,7 @@ import Activity from "./Activity";
 import BlockDetail from "./components/BlockDetail";
 import MiningStats from "./components/MiningStats";
 import Account from "./components/Account";
+import AccountStats from "./components/account/AccountStats";
 import Nodes from "./components/Nodes";
 import Extrinsic from "./components/Extrinsic";
 import Chains from "./Chains";
@@ -29,6 +30,10 @@ const router = createBrowserRouter(
       <Route
         path="/chains/:chainId/stats"
         element={<MiningStats />}
+      />
+      <Route
+        path="/chains/:chainId/account"
+        element={<AccountStats />}
       />
       <Route
         path="/chains/:chainId/account/:accountId"

@@ -19,7 +19,7 @@ const Header = () => {
   const segments = pathname.split("/").filter((c) => !!c);
 
   // Breadcrumb segments that should not be clickable links
-  const ignoredCrumbs = ["account", "block"];
+  const ignoredCrumbs = ["block"];
 
   // Extract current chain ID and route if we're on a chain-specific route
   let currentChainId: string | null = null;
@@ -117,11 +117,18 @@ const Header = () => {
                 <i className="bi bi-hdd-network me-1"></i>
                 <span className="d-none d-lg-inline">Network Nodes</span>
               </Nav.Link>
+              <Nav.Link
+                href={`/chains/${currentChainId}/account`}
+                active={currentRoute === "account" && segments.length === 3}
+              >
+                <i className="bi bi-people me-1"></i>
+                <span className="d-none d-lg-inline">Active Accounts</span>
+              </Nav.Link>
             </Nav>
           )}
           <div className="ms-auto d-flex align-items-center gap-2">
             {currentChainId && (
-              <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
+              <div className="flex-grow-1" style={{ maxWidth: "400px" }}>
                 <BasicSearch />
               </div>
             )}
@@ -133,11 +140,17 @@ const Header = () => {
       <Breadcrumb>
         {!!crumbs && !!crumbs.length
           ? crumbs.map((crumb, cI) => {
+              // Check if this is an "account" segment followed by an accountId
+              const isAccountWithId =
+                crumb.segment === "account" &&
+                cI + 1 < crumbs.length &&
+                crumbs[cI + 1].segment.startsWith("0x");
+
               return crumbs.length === cI + 1 ? (
                 <Breadcrumb.Item key={cI} active>
                   {crumb.name}
                 </Breadcrumb.Item>
-              ) : ignoredCrumbs.includes(crumb.segment) ? (
+              ) : ignoredCrumbs.includes(crumb.segment) || isAccountWithId ? (
                 <Breadcrumb.Item key={cI}>
                   <span style={{ color: "inherit", cursor: "default" }}>
                     {crumb.name}
