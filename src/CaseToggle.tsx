@@ -49,7 +49,7 @@ const CaseToggle: React.FC = () => {
   const getCaseIcon = (textCase: TextCase) => {
     switch (textCase) {
       case 'lowercase':
-        return 'bi-type';
+        return 'bi-volume-down';
       case 'normal':
         return 'bi-type-bold';
       default:
@@ -74,7 +74,7 @@ const CaseToggle: React.FC = () => {
           active={currentCase === 'lowercase'}
           className="case-dropdown-item"
         >
-          <i className="bi bi-type me-2"></i>
+          <i className="bi bi-volume-down me-2"></i>
           lowercase
           {currentCase === 'lowercase' && <i className="bi bi-check2 ms-auto"></i>}
         </Dropdown.Item>
