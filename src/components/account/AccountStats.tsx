@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, Card, Table, Spinner, Alert } from 'react-bootstrap';
-import { getChain } from '../../chains';
-import { getCachedChainProperties } from '../../utils/ss58';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Container, Card, Table, Spinner, Alert, ButtonGroup, Button } from "react-bootstrap";
+import { getChain } from "../../chains";
+import { getCachedChainProperties } from "../../utils/ss58";
 
 interface Transfer {
   id: string;
@@ -24,22 +24,25 @@ interface AccountWithStats extends Account {
   receivedCount: number;
 }
 
+const ROW_COUNT_OPTIONS = [8, 64, 128, 1024];
+
 const AccountStats: React.FC = () => {
   const { chainId } = useParams<{ chainId: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountWithStats[]>([]);
+  const [rowCount, setRowCount] = useState<number>(64);
   const chain = chainId ? getChain(chainId) : null;
 
   useEffect(() => {
     if (!chain || !chain.indexer) {
-      setError('Chain configuration not found or indexer not available');
+      setError("Chain configuration not found or indexer not available");
       setLoading(false);
       return;
     }
 
     fetchMostActiveAccounts();
-  }, [chainId]);
+  }, [chainId, rowCount]);
 
   const fetchMostActiveAccounts = async () => {
     if (!chain || !chain.indexer) return;
@@ -52,7 +55,7 @@ const AccountStats: React.FC = () => {
       // We'll fetch more accounts initially to ensure we get enough active ones
       const query = `
         query GetAccountsWithTransfers {
-          accounts(orderBy: lastUpdated_DESC, limit: 100) {
+          accounts(orderBy: lastUpdated_DESC, limit: 1200) {
             id
             free
             reserved
@@ -69,9 +72,9 @@ const AccountStats: React.FC = () => {
       `;
 
       const response = await fetch(chain.indexer, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ query }),
       });
@@ -87,22 +90,25 @@ const AccountStats: React.FC = () => {
       }
 
       // Process accounts to add transfer statistics
-      const accountsWithStats: AccountWithStats[] = data.data.accounts.map((account: Account) => ({
-        ...account,
-        sentCount: account.transfersTo.length,
-        receivedCount: account.transfersFrom.length,
-        totalTransfers: account.transfersTo.length + account.transfersFrom.length,
-      }));
+      const accountsWithStats: AccountWithStats[] = data.data.accounts.map(
+        (account: Account) => ({
+          ...account,
+          sentCount: account.transfersTo.length,
+          receivedCount: account.transfersFrom.length,
+          totalTransfers:
+            account.transfersTo.length + account.transfersFrom.length,
+        }),
+      );
 
-      // Sort by total transfers and take top 15
+      // Sort by total transfers and take top N based on rowCount
       const topAccounts = accountsWithStats
         .sort((a, b) => b.totalTransfers - a.totalTransfers)
-        .slice(0, 15);
+        .slice(0, rowCount);
 
       setAccounts(topAccounts);
     } catch (err) {
-      console.error('Error fetching accounts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
+      console.error("Error fetching accounts:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch accounts");
     } finally {
       setLoading(false);
     }
@@ -113,23 +119,31 @@ const AccountStats: React.FC = () => {
     const value = BigInt(balance);
     const chainProps = chain ? getCachedChainProperties(chain.genesis) : null;
     const decimals = chainProps?.tokenDecimals || 12;
-    const tokenSymbol = chainProps?.tokenSymbol || 'UNITS';
+    const tokenSymbol = chainProps?.tokenSymbol || "UNITS";
     const divisor = BigInt(10 ** decimals);
     const wholePart = value / divisor;
     const fractionalPart = value % divisor;
-    
+
     // Format with thousand separators
-    const wholeStr = wholePart.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    
+    const wholeStr = wholePart.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
     // Get first 4 decimal places
-    const fractionalStr = fractionalPart.toString().padStart(decimals, '0').slice(0, 4);
-    
+    const fractionalStr = fractionalPart
+      .toString()
+      .padStart(decimals, "0")
+      .slice(0, 4);
+
     return `${wholeStr}.${fractionalStr} ${tokenSymbol}`;
   };
 
   const truncateAddress = (address: string) => {
     if (address.length <= 16) return address;
     return `${address.slice(0, 8)}...${address.slice(-6)}`;
+  };
+
+  const handleRowCountChange = (newCount: number) => {
+    if (newCount === rowCount) return;
+    setRowCount(newCount);
   };
 
   if (loading) {
@@ -159,17 +173,32 @@ const AccountStats: React.FC = () => {
   return (
     <Container className="py-4">
       <h2 className="mb-4">Most Active Accounts</h2>
-      
+
       <Card>
-        <Card.Header>
-          <h5 className="mb-0">Top 15 Accounts by Transaction Activity</h5>
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">Active Accounts by Transaction Activity</h5>
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted small">Show:</span>
+            <ButtonGroup size="sm">
+              {ROW_COUNT_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  variant={rowCount === option ? "primary" : "outline-primary"}
+                  onClick={() => handleRowCountChange(option)}
+                  disabled={loading}
+                >
+                  {option}
+                </Button>
+              ))}
+            </ButtonGroup>
+          </div>
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive">
             <Table hover className="mb-0">
               <thead>
                 <tr>
-                  <th style={{ width: '60px' }}>Rank</th>
+                  <th style={{ width: "60px" }}>Rank</th>
                   <th>Account</th>
                   <th className="text-end">Free Balance</th>
                   <th className="text-center">Sent</th>
@@ -183,7 +212,7 @@ const AccountStats: React.FC = () => {
                   <tr key={account.id}>
                     <td className="text-muted">#{index + 1}</td>
                     <td>
-                      <a 
+                      <a
                         href={`/chains/${chainId}/account/${account.id}`}
                         className="text-decoration-none"
                         title={account.id}
@@ -210,7 +239,7 @@ const AccountStats: React.FC = () => {
                       <strong>{account.totalTransfers}</strong>
                     </td>
                     <td className="text-center">
-                      <a 
+                      <a
                         href={`/chains/${chainId}/block/${account.lastUpdated}`}
                         className="text-decoration-none"
                       >
@@ -234,8 +263,8 @@ const AccountStats: React.FC = () => {
       <div className="mt-3 text-muted">
         <small>
           <i className="bi bi-info-circle me-1"></i>
-          Activity is measured by the total number of transfers (sent + received).
-          Only showing accounts with at least one transfer.
+          Activity is measured by the total number of transfers (sent +
+          received). Showing top {rowCount} accounts with at least one transfer.
         </small>
       </div>
     </Container>
