@@ -9,6 +9,7 @@ import Logo from "./assets/res.svg";
 import ThemeToggle from "./ThemeToggle";
 import CaseToggle from "./CaseToggle";
 import { getAllChains, getChain } from "./chains";
+import { BasicSearch } from "./components/search";
 import "./Header.css";
 import "./CaseToggle.css";
 
@@ -57,7 +58,7 @@ const Header = () => {
 
   return (
     <Container>
-      <Navbar expand="lg">
+      <Navbar expand="lg" className="py-2">
         <Navbar.Brand href="/chains">
           <img
             src={Logo}
@@ -94,34 +95,37 @@ const Header = () => {
             </NavDropdown>
           </Nav>
           {currentChainId && (
-            <Nav className="ms-auto me-3">
+            <Nav className="me-auto me-lg-3">
               <Nav.Link
                 href={`/chains/${currentChainId}/activity`}
                 active={currentRoute === "activity"}
               >
                 <i className="bi bi-activity me-1"></i>
-                Activity
+                <span className="d-none d-lg-inline">Activity</span>
               </Nav.Link>
               <Nav.Link
                 href={`/chains/${currentChainId}/stats`}
                 active={currentRoute === "stats"}
               >
                 <i className="bi bi-graph-up me-1"></i>
-                Mining Stats
+                <span className="d-none d-lg-inline">Mining Stats</span>
               </Nav.Link>
               <Nav.Link
                 href={`/chains/${currentChainId}/nodes`}
                 active={currentRoute === "nodes"}
               >
                 <i className="bi bi-hdd-network me-1"></i>
-                Network Nodes
+                <span className="d-none d-lg-inline">Network Nodes</span>
               </Nav.Link>
             </Nav>
           )}
-          <Nav className="ms-auto">
+          <div className="ms-auto d-flex align-items-center gap-2">
+            <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
+              <BasicSearch />
+            </div>
             <CaseToggle />
             <ThemeToggle />
-          </Nav>
+          </div>
         </Navbar.Collapse>
       </Navbar>
       <Breadcrumb>

@@ -1,0 +1,1 @@
+export { BasicSearch } from './BasicSearch';
