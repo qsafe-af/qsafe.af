@@ -120,9 +120,11 @@ const Header = () => {
             </Nav>
           )}
           <div className="ms-auto d-flex align-items-center gap-2">
-            <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
-              <BasicSearch />
-            </div>
+            {currentChainId && (
+              <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
+                <BasicSearch />
+              </div>
+            )}
             <CaseToggle />
             <ThemeToggle />
           </div>
