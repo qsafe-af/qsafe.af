@@ -275,11 +275,11 @@ export const chains: Record<string, Chain> = {
       "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     displayName: "Quantus",
   },
-  integration: {
-    name: "integration",
+  heisenberg: {
+    name: "heisenberg",
     genesis:
-      "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
-    displayName: "Integration",
+      "0xb15f3bb4f72e4888490ee3dff2660d0aad75da92a82648b063d88a8980148e53",
+    displayName: "Heisenberg",
     endpoints: ["wss://a.i.res.fm"],
     telemetry: "wss://tc0.res.fm/feed",
   },

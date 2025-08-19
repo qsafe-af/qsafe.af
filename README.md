@@ -9,7 +9,7 @@ This explorer provides a unified interface for monitoring and analyzing multiple
 ## Features
 
 ### 🔍 Chain Exploration
-- **Multi-chain Support**: Switch between different chains (Resonance, Quantus, Integration)
+- **Multi-chain Support**: Switch between different chains (Resonance, Quantus, Heisenberg)
 - **Real-time Activity**: Live block and extrinsic monitoring via WebSocket connections
 - **Block Details**: Deep dive into blocks, extrinsics, and events with full decoding
 - **Search**: Find blocks by number or hash
