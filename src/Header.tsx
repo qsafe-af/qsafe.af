@@ -5,7 +5,6 @@ import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Breadcrumb from "react-bootstrap/Breadcrumb";
 import { useLocation } from "react-router-dom";
-import Logo from "./assets/res.svg";
 import ThemeToggle from "./ThemeToggle";
 import CaseToggle from "./CaseToggle";
 import { getAllChains, getChain } from "./chains";
@@ -61,7 +60,7 @@ const Header = () => {
       <Navbar expand="lg" className="py-2">
         <Navbar.Brand href="/chains">
           <img
-            src={Logo}
+            src="/q.png"
             alt="quantus logo"
             style={{ width: "0.8em", marginRight: "0.3em" }}
           />
