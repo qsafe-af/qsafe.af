@@ -15,6 +15,7 @@ import Nodes from "./components/Nodes";
 import Extrinsic from "./components/Extrinsic";
 import Chains from "./Chains";
 import Chain from "./Chain";
+import Runtime from "./Runtime";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -27,26 +28,15 @@ const router = createBrowserRouter(
         path="/chains/:chainId/block/:blockNumberOrHash"
         element={<BlockDetail />}
       />
-      <Route
-        path="/chains/:chainId/stats"
-        element={<MiningStats />}
-      />
-      <Route
-        path="/chains/:chainId/account"
-        element={<AccountStats />}
-      />
-      <Route
-        path="/chains/:chainId/account/:accountId"
-        element={<Account />}
-      />
+      <Route path="/chains/:chainId/stats" element={<MiningStats />} />
+      <Route path="/chains/:chainId/account" element={<AccountStats />} />
+      <Route path="/chains/:chainId/account/:accountId" element={<Account />} />
       <Route
         path="/chains/:chainId/extrinsic/:extrinsicId"
         element={<Extrinsic />}
       />
-      <Route
-        path="/chains/:chainId/nodes"
-        element={<Nodes />}
-      />
+      <Route path="/chains/:chainId/nodes" element={<Nodes />} />
+      <Route path="/chains/:chainId/runtime/:runtime" element={<Runtime />} />
     </Route>
   ),
 );
