@@ -1,0 +1,230 @@
+---
+schema_version: 1.0
+chains:
+  - name: Quantus
+    codebase: https://github.com/Quantus-Network/chain
+    pq_overview:
+      status: implemented
+      scope:
+        - accounts_signing
+        - node_identity
+        - network_handshake_kem
+      high_level_notes:
+        - Uses ML-DSA (CRYSTALS-Dilithium) for account/transaction signing.
+        - Uses PQ libp2p identity keys (Dilithium) for node IDs.
+        - Uses a PQ KEM (ML-KEM/Kyber) in the libp2p Noise handshake stack.
+        - AccountId32 is Poseidon(public_key_bytes), not a raw public key.
+    components:
+      accounts_signing:
+        enabled: true
+        schemes:
+          - role: transaction_signing
+            algorithm_family: ML-DSA
+            algorithm_aliases: [CRYSTALS-Dilithium, Dilithium]
+            parameter_set: ML-DSA-87
+            standards:
+              authority: NIST
+              specification: FIPS 204 (Module-Lattice-based Digital Signature Algorithm)
+              status: Final
+            key_sizes_bytes:
+              public_key: 2592
+              secret_key: 4864
+              signature: 4595
+            signature_object_format:
+              type: signature_plus_public_key_concatenation
+              fields:
+                - name: signature
+                  length_bytes: 4595
+                - name: public_key
+                  length_bytes: 2592
+              total_len_bytes: 7187
+              where_used: extrinsic signatures carried as "signature-with-public"
+            hd_derivation:
+              supported: false
+              reason: scheme does not support hierarchical derivation (Pair::derive returns SoftKeyInPath)
+            account_id_derivation:
+              method: Poseidon_hash(public_key_bytes) -> AccountId32
+              hash_function: Poseidon
+              notes: Display may use SS58; underlying AccountId32 is Poseidon of the Dilithium public key bytes.
+            implementation:
+              language: Rust
+              library: rusty-crystals-dilithium
+              module_or_feature: ml_dsa_87
+              fips140_module_validation: false
+              notes:
+                - Conforms to FIPS 204 at the algorithm/parameter level; no FIPS 140-3 module validation indicated.
+                - Key generation enforces minimum entropy length (SEEDBYTES) when provided.
+            code_refs:
+              - path: chain/dilithium-crypto/src/lib.rs
+                lines: "1-15"
+                note: Binds to ml_dsa_87 and exposes PUBLICKEYBYTES/SECRETKEYBYTES/SIGNBYTES.
+              - path: chain/dilithium-crypto/src/types.rs
+                lines: "61-102"
+                note: Signature-with-public concatenation format.
+              - path: chain/dilithium-crypto/src/pair.rs
+                lines: "38-90"
+                note: sp_core::Pair impl (sign/verify/public) using ml_dsa_87.
+              - path: chain/dilithium-crypto/src/traits.rs
+                lines: "62-76"
+                note: IdentifyAccount for DilithiumPublic -> Poseidon(AccountId32).
+              - path: chain/runtime/src/lib.rs
+                lines: "115-123"
+                note: Runtime sets Signature = DilithiumSignatureScheme.
+      node_identity_signing:
+        enabled: true
+        schemes:
+          - role: libp2p_node_identity
+            algorithm_family: ML-DSA
+            algorithm_aliases: [CRYSTALS-Dilithium, Dilithium]
+            parameter_set: unknown
+            standards:
+              authority: NIST
+              specification: FIPS 204
+              status: Final
+            key_sizes_bytes:
+              public_key: 2592
+              secret_key: 4864
+              signature: 4595
+              note: Values shown are for ML-DSA-87; actual param-set for node identity is not declared in this repo.
+            storage:
+              file_name: secret_dilithium
+              directory: chains/<chain_id>/network
+              format: libp2p protobuf encoding
+            implementation:
+              language: Rust
+              libraries:
+                - name: libp2p-identity-pqc
+                  repo: https://github.com/Quantus-Network/libp2p-identity-pqc
+                  depends_on: rusty-crystals-dilithium
+              fips140_module_validation: false
+              notes:
+                - Parameter set not explicitly declared in this repo; treat as unknown.
+            code_refs:
+              - path: chain/node/src/cli.rs
+                lines: "263-292"
+                note: generate_key_in_file() uses Keypair::generate_dilithium() and writes 'secret_dilithium'.
+              - path: chain/node/src/cli.rs
+                lines: "166-181"
+                note: InspectNodeKey loads protobuf-encoded key and prints peer-id.
+              - path: chain/Cargo.toml
+                lines: "154-159"
+                note: Uses sc-network/libp2p-identity PQC forks.
+      network_handshake_kem:
+        enabled: true
+        kems:
+          - role: libp2p_noise_handshake
+            algorithm_family: ML-KEM
+            algorithm_aliases: [Kyber, CRYSTALS-Kyber]
+            parameter_set: unknown
+            standards:
+              authority: NIST
+              specification: FIPS 203 (Module-Lattice-based Key-Encapsulation Mechanism)
+              status: Final
+            implementation:
+              language: Rust
+              libraries:
+                - name: libp2p-noise-pqc
+                  repo: https://github.com/Quantus-Network/libp2p-noise-pqc
+                - name: pqcrypto-kyber
+                  repo: https://crates.io/crates/pqcrypto-kyber
+                - name: ml-kem
+                  repo: https://crates.io/crates/ml-kem
+              fips140_module_validation: false
+            code_refs:
+              - path: chain/Cargo.toml
+                lines: "154-159"
+                note: Adds libp2p-noise PQC fork.
+              - path: chain/Cargo.lock
+                lines: "1279-1284"
+                note: ml-kem and pqcrypto-kyber present.
+              - path: chain/Cargo.lock
+                lines: "5126-5130"
+                note: libp2p-noise-pqc dependency.
+    consensus_signing:
+      enabled: false
+      notes:
+        - QPoW logic present; no separate consensus keypair scheme beyond standard account signatures for extrinsics.
+    address_format:
+      ss58:
+        used: true
+        custom_prefix: 189
+        notes: Used for display/logging (see genesis logging); AccountId32 itself is Poseidon(pubkey).
+      code_refs:
+        - path: chain/runtime/src/genesis_config_presets.rs
+          lines: "62-72"
+          note: Logs SS58-format addresses with custom prefix.
+    compatibility:
+      classic_crypto_alongside_pq: false
+      dual_signatures_supported: false
+      transitional_mechanisms: none
+      hd_wallet_compatibility:
+        bip32_like_derivation: false
+        reason: Derive is not supported for Dilithium keys in this codebase.
+    security_compliance:
+      nist_fips_algorithms_in_use:
+        - name: ML-DSA
+          doc: FIPS 204
+          where: accounts_signing, node_identity (implementation-level, algorithm mapping)
+        - name: ML-KEM
+          doc: FIPS 203
+          where: network_handshake_kem (libp2p-noise)
+      fips140_module_validation: false
+      validation_notes:
+        - Conforms to standardized algorithms at the spec level; no evidence of FIPS 140-validated crypto modules in this repo.
+    external_repos_and_commits:
+      - name: rusty-crystals-dilithium
+        url: https://github.com/Quantus-Network/rusty-crystals
+        commit: d941f4ca85e593e1dcda47b223bb297749448610
+        code_refs:
+          - path: chain/Cargo.lock
+            lines: "9120-9144"
+      - name: libp2p-identity-pqc
+        url: https://github.com/Quantus-Network/libp2p-identity-pqc
+        commit: 2c2588b2825c4e2730daa54f54cc0c4f5e653139
+        code_refs:
+          - path: chain/Cargo.lock
+            lines: "5020-5033"
+      - name: libp2p-noise-pqc
+        url: https://github.com/Quantus-Network/libp2p-noise-pqc
+        commit: 2c6e128dc16e14b500e49b7e1d9c00543d60b52e
+        code_refs:
+          - path: chain/Cargo.lock
+            lines: "5126-5130"
+      - name: sc-network-pqc
+        url: https://github.com/Quantus-Network/sc-network-pqc
+        commit: fbcf83bcc6c89b1e7f2240c95572adac3e2aabc6
+        code_refs:
+          - path: chain/Cargo.lock
+            lines: "9619-9623"
+    project_code_references:
+      accounts:
+        - path: chain/dilithium-crypto/src/lib.rs
+          lines: "1-15"
+          note: Size constants and ml_dsa_87 binding.
+        - path: chain/dilithium-crypto/src/pair.rs
+          lines: "56-85"
+          note: sign()/verify()/public() using Dilithium.
+        - path: chain/dilithium-crypto/src/traits.rs
+          lines: "1-30"
+          note: Public/Signature wrappers and verify(pub, msg, sig).
+        - path: chain/runtime/src/lib.rs
+          lines: "115-123"
+          note: Signature type = DilithiumSignatureScheme.
+      node_identity:
+        - path: chain/node/src/cli.rs
+          lines: "263-292"
+          note: Generate Dilithium node key file.
+        - path: chain/node/src/cli.rs
+          lines: "166-181"
+          note: Inspect node key and derive peer ID.
+      handshake:
+        - path: chain/Cargo.toml
+          lines: "154-159"
+          note: PQC forks for sc-network/libp2p-identity/libp2p-noise.
+        - path: chain/Cargo.lock
+          lines: "1279-1284, 5126-5130, 7727-7756"
+          note: ml-kem, pqcrypto-kyber, libp2p-noise-pqc present.
+    notes_and_assumptions:
+      - ML-DSA-87 byte lengths are standard FIPS 204 values; this repo defers to upstream constants.
+      - Node identity ML-DSA parameter set is not explicitly stated here; marked as unknown.
+      - KEM parameter set for libp2p-noise PQC is not specified in this repo; marked as unknown.
