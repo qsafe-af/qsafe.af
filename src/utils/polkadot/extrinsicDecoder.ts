@@ -240,7 +240,7 @@ export function parseExtrinsicHeaderAndCall(
             const [nonceC, nReadC] = readCompactInt(x, j);
             j += nReadC;
             // Peek tip to estimate where call starts and validate alignment
-            const [tipC, tReadC] = readCompactInt(x, j);
+            const [_tipC, tReadC] = readCompactInt(x, j);
             const callStart = j + tReadC;
             const found = findCallHeaderWithMeta(x, callStart, slimMap, 512);
             // Sanity: nonce reasonable and metadata-aligned call header found
