@@ -23,7 +23,7 @@ const Chains: React.FC = () => {
                     className="text-decoration-none"
                   >
                     <img
-                      src={`/chains/${chain.name}/${chain.name === "heisenberg" ? (Math.floor(Math.random() * 2) == 0 ? "logo" : "cezary") : "logo"}.png`}
+                      src={`/chains/${chain.name}/${chain.name === "heisenberg" ? ["cezary", "heisenberg", "logo"][Math.floor(Math.random() * 3)] : "logo"}.png`}
                       alt={chain.name}
                       className="rounded-circle"
                       style={{
