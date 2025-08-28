@@ -1,12 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Navigate } from "react-router-dom";
-import {
-  Container,
-  Alert,
-  Card,
-  Badge,
-  Spinner,
-} from "react-bootstrap";
+import { Container, Alert, Card, Badge, Spinner } from "react-bootstrap";
 import { getChain, normalizeToGenesis } from "./chains";
 import Block from "./Block";
 import BlockExtrinsics from "./components/BlockExtrinsics";
@@ -27,8 +21,12 @@ const Activity: React.FC = () => {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
-  const [blockMetadata, setBlockMetadata] = useState<Map<string, MetadataInfo>>(new Map());
-  const [metadataBySpecVersion, setMetadataBySpecVersion] = useState<Map<number, MetadataInfo>>(new Map());
+  const [blockMetadata, setBlockMetadata] = useState<Map<string, MetadataInfo>>(
+    new Map(),
+  );
+  const [metadataBySpecVersion, setMetadataBySpecVersion] = useState<
+    Map<number, MetadataInfo>
+  >(new Map());
   const wsRef = useRef<WebSocket | null>(null);
   const subscriptionIdRef = useRef<string | null>(null);
 
@@ -168,7 +166,9 @@ const Activity: React.FC = () => {
                   `Updated blocks after hash fetch:`,
                   updated.find((b) => b.number === blockNumber),
                 );
-                console.log(`[Activity] Block ${blockNumber} hash updated to ${actualHash}`);
+                console.log(
+                  `[Activity] Block ${blockNumber} hash updated to ${actualHash}`,
+                );
                 return updated;
               });
 
@@ -188,7 +188,9 @@ const Activity: React.FC = () => {
                   type: "getRuntimeVersion",
                   data: { blockNumber, blockHash: actualHash },
                 });
-                console.log(`[Activity] Sending getRuntimeVersion request for block ${blockNumber} with hash ${actualHash}`);
+                console.log(
+                  `[Activity] Sending getRuntimeVersion request for block ${blockNumber} with hash ${actualHash}`,
+                );
                 wsRef.current.send(JSON.stringify(getRuntimeMessage));
 
                 // Get the storage key for System.Events
@@ -286,9 +288,7 @@ const Activity: React.FC = () => {
                     jsonrpc: "2.0",
                     method: "state_queryStorage",
                     params: [
-                      [
-                        getSystemEventsStorageKey(),
-                      ],
+                      [getSystemEventsStorageKey()],
                       blockHash,
                       blockHash,
                     ],
@@ -337,51 +337,66 @@ const Activity: React.FC = () => {
                 `[Activity] Runtime version for block ${blockNumber}:`,
                 data.result,
               );
-              
+
               // Fetch metadata for this runtime version
               if (data.result && data.result.specVersion && endpoint) {
                 const specVersion = data.result.specVersion;
-                console.log(`[Activity] Processing runtime version ${specVersion} for block ${blockNumber} (hash: ${blockHash})`);
-                
+                console.log(
+                  `[Activity] Processing runtime version ${specVersion} for block ${blockNumber} (hash: ${blockHash})`,
+                );
+
                 // Check if we already have metadata for this spec version
                 if (!metadataBySpecVersion.has(specVersion)) {
-                  console.log(`[Activity] Fetching metadata for spec version ${specVersion}...`);
+                  console.log(
+                    `[Activity] Fetching metadata for spec version ${specVersion}...`,
+                  );
                   fetchMetadata(endpoint, blockHash)
-                    .then(metadata => {
+                    .then((metadata) => {
                       // Store metadata by spec version for reuse
-                      setMetadataBySpecVersion(prev => {
+                      setMetadataBySpecVersion((prev) => {
                         const updated = new Map(prev);
                         updated.set(specVersion, metadata);
                         return updated;
                       });
-                      
+
                       // Also store for this specific block
-                      setBlockMetadata(prev => {
+                      setBlockMetadata((prev) => {
                         const updated = new Map(prev);
                         updated.set(blockHash, metadata);
-                        console.log(`[Activity] Stored metadata for block hash ${blockHash}, map now has ${updated.size} entries`);
+                        console.log(
+                          `[Activity] Stored metadata for block hash ${blockHash}, map now has ${updated.size} entries`,
+                        );
                         return updated;
                       });
-                      
-                      console.log(`[Activity] Fetched metadata for spec version ${specVersion}: ${metadata.callMap.size} pallets`);
-                      
+
+                      console.log(
+                        `[Activity] Fetched metadata for spec version ${specVersion}: ${metadata.callMap.size} pallets`,
+                      );
+
                       // Force re-render of blocks that use this metadata
-                      setBlocks(prevBlocks => [...prevBlocks]);
+                      setBlocks((prevBlocks) => [...prevBlocks]);
                     })
-                    .catch(error => {
-                      console.error(`Failed to fetch metadata for block ${blockNumber}:`, error);
+                    .catch((error) => {
+                      console.error(
+                        `Failed to fetch metadata for block ${blockNumber}:`,
+                        error,
+                      );
                     });
                 } else {
                   // Reuse existing metadata for this spec version
                   const metadata = metadataBySpecVersion.get(specVersion);
                   if (metadata) {
-                    setBlockMetadata(prev => {
+                    setBlockMetadata((prev) => {
                       const updated = new Map(prev);
                       updated.set(blockHash, metadata);
-                      console.log(`[Activity] Reusing metadata for block hash ${blockHash}, map now has ${updated.size} entries`);
+                      console.log(
+                        `[Activity] Reusing metadata for block hash ${blockHash}, map now has ${updated.size} entries`,
+                      );
                       return updated;
                     });
-                    console.log(`[Activity] Reusing metadata for block ${blockNumber} (spec version ${specVersion})`);
+                    console.log(
+                      `[Activity] Reusing metadata for block ${blockNumber} (spec version ${specVersion})`,
+                    );
                   }
                 }
               }
@@ -407,7 +422,9 @@ const Activity: React.FC = () => {
                 const extrinsics = data.result.block.extrinsics;
                 setBlocks((prevBlocks) =>
                   prevBlocks.map((block) =>
-                    block.number === blockNumber ? { ...block, extrinsics } : block,
+                    block.number === blockNumber
+                      ? { ...block, extrinsics }
+                      : block,
                   ),
                 );
 
@@ -419,9 +436,7 @@ const Activity: React.FC = () => {
                     jsonrpc: "2.0",
                     method: "state_queryStorageAt",
                     params: [
-                      [
-                        getSystemEventsStorageKey(),
-                      ],
+                      [getSystemEventsStorageKey()],
                       data.result.block.header.hash || data.result.block.hash,
                     ],
                   };
@@ -466,8 +481,6 @@ const Activity: React.FC = () => {
         if (data.method === "chain_newHead" && data.params) {
           const { result: header } = data.params;
 
-
-
           // In Substrate chains, the block number is in hex format
           const blockNumber = parseInt(header.number, 16).toString();
 
@@ -489,7 +502,9 @@ const Activity: React.FC = () => {
 
           setBlocks((prevBlocks) => {
             // Check if block already exists
-            const existingBlockIndex = prevBlocks.findIndex(b => b.number === blockNumber);
+            const existingBlockIndex = prevBlocks.findIndex(
+              (b) => b.number === blockNumber,
+            );
             if (existingBlockIndex !== -1) {
               // Block already exists, update it instead of adding duplicate
               const updated = [...prevBlocks];
@@ -557,12 +572,19 @@ const Activity: React.FC = () => {
 
   const formatEventDataForDisplay = (data: any): React.ReactNode => {
     if (!data) return null;
-    
-    if (typeof data === "string") return <span className="text-muted">{data}</span>;
-    
+
+    if (typeof data === "string")
+      return <span className="text-muted">{data}</span>;
+
     if (Array.isArray(data)) {
-      if (data.length === 1 && typeof data[0] === 'string' && data[0].startsWith('0x')) {
-        return <span className="text-muted font-monospace small">{data[0]}</span>;
+      if (
+        data.length === 1 &&
+        typeof data[0] === "string" &&
+        data[0].startsWith("0x")
+      ) {
+        return (
+          <span className="text-muted font-monospace small">{data[0]}</span>
+        );
       }
       return (
         <>
@@ -574,41 +596,48 @@ const Activity: React.FC = () => {
         </>
       );
     }
-    
+
     if (typeof data === "object") {
       return (
         <div className="small">
           {Object.entries(data).map(([key, value]) => (
             <div key={key} className="d-flex align-items-start">
               <span className="text-info me-2">{formatKey(key)}:</span>
-              <span className={themeClasses.text.primary}>{formatValue(value)}</span>
+              <span className={themeClasses.text.primary}>
+                {formatValue(value)}
+              </span>
             </div>
           ))}
         </div>
       );
     }
-    
+
     return String(data);
   };
 
   const formatKey = (key: string): string => {
     return key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())
       .trim();
   };
 
   const formatValue = (value: any): React.ReactNode => {
     if (!value) return "null";
-    
-    if (value && typeof value === "object" && "display" in value && "value" in value) {
+
+    if (
+      value &&
+      typeof value === "object" &&
+      "display" in value &&
+      "value" in value
+    ) {
       return (
         <span className="font-monospace" title={value.value}>
           {value.display}
         </span>
       );
     }
-    
+
     if (typeof value === "object" && !Array.isArray(value)) {
       return (
         <span>
@@ -621,7 +650,7 @@ const Activity: React.FC = () => {
         </span>
       );
     }
-    
+
     if (Array.isArray(value)) {
       return value.map((item, idx) => (
         <span key={idx}>
@@ -630,11 +659,9 @@ const Activity: React.FC = () => {
         </span>
       ));
     }
-    
+
     return String(value);
   };
-
-
 
   if (!chainId) {
     return <Navigate to="/chains/resonance/activity" />;
@@ -674,6 +701,18 @@ const Activity: React.FC = () => {
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
             <h3 className="h5 mb-0">
+              {chain ? (
+                <img
+                  src={`/chains/${chain.name}/logo.png`}
+                  alt={chain.name}
+                  className="rounded-circle"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    marginRight: "0.4em",
+                  }}
+                />
+              ) : null}
               {chain ? chain.displayName : "Unknown Chain"}
               {chain && isQuantumChain(chain.name) && (
                 <QuantumBadge variant="inline" />
@@ -706,9 +745,11 @@ const Activity: React.FC = () => {
         </Card.Body>
       </Card>
 
-      {chain?.endpoints && chain.endpoints.length > 0 && connectionStatus === "connected" && (
-        <ChainStatus ws={wsRef.current} connectionStatus={connectionStatus} />
-      )}
+      {chain?.endpoints &&
+        chain.endpoints.length > 0 &&
+        connectionStatus === "connected" && (
+          <ChainStatus ws={wsRef.current} connectionStatus={connectionStatus} />
+        )}
 
       <Card className="mb-4">
         <Card.Header>
@@ -720,8 +761,10 @@ const Activity: React.FC = () => {
           </div>
         </Card.Header>
         <Card.Body>
-          {(!chain?.endpoints || chain.endpoints.length === 0) ? (
-            <Alert variant="info">No endpoints configured for this chain.</Alert>
+          {!chain?.endpoints || chain.endpoints.length === 0 ? (
+            <Alert variant="info">
+              No endpoints configured for this chain.
+            </Alert>
           ) : blocks.length === 0 ? (
             <p className="text-muted">
               {connectionStatus === "connected"
@@ -731,18 +774,26 @@ const Activity: React.FC = () => {
           ) : (
             <div className="activity-blocks-events">
               {blocks.map((block, index) => {
-                const metadata = block.hash && !block.hash.startsWith('pending_') ? blockMetadata.get(block.hash) : undefined;
-                console.log(`[Activity] Rendering block ${block.number} with hash ${block.hash}, metadata available: ${!!metadata}`);
+                const metadata =
+                  block.hash && !block.hash.startsWith("pending_")
+                    ? blockMetadata.get(block.hash)
+                    : undefined;
+                console.log(
+                  `[Activity] Rendering block ${block.number} with hash ${block.hash}, metadata available: ${!!metadata}`,
+                );
                 return (
-                  <div key={`${block.number}-${index}`} className="block-event-row">
+                  <div
+                    key={`${block.number}-${index}`}
+                    className="block-event-row"
+                  >
                     <div className="block-column">
                       <Block block={block} index={index} />
                     </div>
                     <div className="event-column">
-                      <BlockExtrinsics 
-                        block={block} 
-                        chain={chain} 
-                        metadata={metadata} 
+                      <BlockExtrinsics
+                        block={block}
+                        chain={chain}
+                        metadata={metadata}
                       />
                     </div>
                   </div>

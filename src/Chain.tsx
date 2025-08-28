@@ -1,9 +1,9 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Container, Card, Alert, Badge, ListGroup } from 'react-bootstrap';
-import { getChain } from './chains';
-import { themeClasses } from './theme-utils';
-import RuntimeTimeline from './components/RuntimeTimeline';
+import React from "react";
+import { useParams, Link } from "react-router-dom";
+import { Container, Card, Alert, Badge, ListGroup } from "react-bootstrap";
+import { getChain } from "./chains";
+import { themeClasses } from "./theme-utils";
+import RuntimeTimeline from "./components/RuntimeTimeline";
 
 const Chain: React.FC = () => {
   const { chainId } = useParams<{ chainId: string }>();
@@ -29,19 +29,19 @@ const Chain: React.FC = () => {
   const availableRoutes = [
     {
       path: `/chains/${chain.name}/activity`,
-      name: 'Activity',
-      description: 'View real-time blocks and events',
-      icon: 'bi-activity'
-    }
+      name: "Activity",
+      description: "View real-time blocks and events",
+      icon: "bi-activity",
+    },
   ];
 
   // Only add mining stats if indexer is available
   if (chain.indexer) {
     availableRoutes.push({
       path: `/chains/${chain.name}/stats`,
-      name: 'Mining Stats',
-      description: 'View mining statistics and leaderboard',
-      icon: 'bi-graph-up'
+      name: "Mining Stats",
+      description: "View mining statistics and leaderboard",
+      icon: "bi-graph-up",
     });
   }
 
@@ -49,9 +49,9 @@ const Chain: React.FC = () => {
   if (chain.telemetry) {
     availableRoutes.push({
       path: `/chains/${chain.name}/nodes`,
-      name: 'Network Nodes',
-      description: 'View connected nodes and network statistics',
-      icon: 'bi-hdd-network'
+      name: "Network Nodes",
+      description: "View connected nodes and network statistics",
+      icon: "bi-hdd-network",
     });
   }
 
@@ -70,28 +70,36 @@ const Chain: React.FC = () => {
         </Card.Header>
         <Card.Body>
           <div className="row">
-            <div className="col-md-12">
+            <div className="col-md-3">
+              <img
+                src={`/chains/${chain.name}/logo.png`}
+                alt={chain.name}
+                className="rounded-circle"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div className="col-md-9">
               <div className="mb-3">
-                <strong>Chain ID:</strong>{' '}
+                <strong>Chain ID:</strong>{" "}
                 <Badge bg="secondary" className="font-monospace">
                   {chain.name}
                 </Badge>
               </div>
-              
+
               <div className="mb-3">
                 <strong>Genesis Hash:</strong>
                 <div className="font-monospace text-break small">
                   {chain.genesis}
                 </div>
               </div>
-              
+
               {chain.endpoints && chain.endpoints.length > 0 && (
                 <div className="mb-3">
                   <strong>WebSocket Endpoints:</strong>
                   <ListGroup className="mt-2">
                     {chain.endpoints.map((endpoint, idx) => (
-                      <ListGroup.Item 
-                        key={idx} 
+                      <ListGroup.Item
+                        key={idx}
                         className={`${themeClasses.bg.subtle} border font-monospace small`}
                       >
                         <i className="bi bi-broadcast me-2 text-success"></i>
@@ -101,7 +109,7 @@ const Chain: React.FC = () => {
                   </ListGroup>
                 </div>
               )}
-              
+
               {(!chain.endpoints || chain.endpoints.length === 0) && (
                 <Alert variant="warning" className="mb-0">
                   <i className="bi bi-exclamation-triangle me-2"></i>
@@ -114,10 +122,7 @@ const Chain: React.FC = () => {
       </Card>
 
       {chain.endpoints && chain.endpoints.length > 0 && (
-        <RuntimeTimeline 
-          endpoint={chain.endpoints[0]} 
-          chainName={chain.name} 
-        />
+        <RuntimeTimeline endpoint={chain.endpoints[0]} chainName={chain.name} />
       )}
 
       <Card className={`${themeClasses.bg.tertiary} border`}>
@@ -127,7 +132,7 @@ const Chain: React.FC = () => {
         <Card.Body>
           <ListGroup>
             {availableRoutes.map((route) => (
-              <ListGroup.Item 
+              <ListGroup.Item
                 key={route.path}
                 className={`${themeClasses.bg.subtle} border`}
                 action
