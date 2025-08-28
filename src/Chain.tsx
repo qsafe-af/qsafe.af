@@ -72,7 +72,7 @@ const Chain: React.FC = () => {
           <div className="row">
             <div className="col-md-3">
               <img
-                src={`/chains/${chain.name}/logo.png`}
+                src={`/chains/${chain.name}/${chain.name === "heisenberg" ? (Math.floor(Math.random() * 2) == 0 ? "logo" : "cezary") : "logo"}.png`}
                 alt={chain.name}
                 className="rounded-circle"
                 style={{ width: "100%" }}

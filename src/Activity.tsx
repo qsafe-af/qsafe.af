@@ -703,7 +703,7 @@ const Activity: React.FC = () => {
             <h3 className="h5 mb-0">
               {chain ? (
                 <img
-                  src={`/chains/${chain.name}/logo.png`}
+                  src={`/chains/${chain.name}/${chain.name === "heisenberg" ? (Math.floor(Math.random() * 2) == 0 ? "logo" : "cezary") : "logo"}.png`}
                   alt={chain.name}
                   className="rounded-circle"
                   style={{
