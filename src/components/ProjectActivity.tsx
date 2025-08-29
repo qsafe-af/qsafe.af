@@ -4,6 +4,7 @@ import "./ProjectActivity.css";
 interface ProjectActivityProps {
   url: string;
   periodDays?: number; // Time period for volume calculation (default: 30 days)
+  onActivityLoaded?: (date: Date | undefined) => void; // Optional callback when activity is loaded
 }
 
 interface ActivityMetrics {
@@ -36,6 +37,7 @@ const getGitHubToken = (): string | undefined => {
 const ProjectActivity: React.FC<ProjectActivityProps> = ({
   url,
   periodDays = 30,
+  onActivityLoaded,
 }) => {
   const [metrics, setMetrics] = useState<ActivityMetrics>({
     loading: true,
@@ -121,6 +123,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         });
 
         setMetrics(newMetrics);
+
+        // Report activity date if callback provided
+        if (onActivityLoaded) {
+          onActivityLoaded(lastActivityDate);
+        }
       } catch (err) {
         console.error("GitHub API error:", err);
         const errorMessage =
@@ -139,6 +146,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         });
 
         setMetrics(errorMetrics);
+
+        // Report no activity if error
+        if (onActivityLoaded) {
+          onActivityLoaded(undefined);
+        }
       }
     };
 
@@ -204,6 +216,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
             });
 
             setMetrics(newMetrics);
+
+            // Report activity date if callback provided
+            if (onActivityLoaded) {
+              onActivityLoaded(mostRecentDate);
+            }
           } else {
             const newMetrics = {
               loading: false,
@@ -216,6 +233,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
             });
 
             setMetrics(newMetrics);
+
+            // Report no activity
+            if (onActivityLoaded) {
+              onActivityLoaded(undefined);
+            }
           }
         } else {
           // For individual projects
@@ -288,6 +310,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
               });
 
               setMetrics(newMetrics);
+
+              // Report activity date if callback provided
+              if (onActivityLoaded) {
+                onActivityLoaded(lastActivityDate);
+              }
             } catch {
               // If we can't get events, just use the last activity date
               const newMetrics = {
@@ -302,6 +329,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
               });
 
               setMetrics(newMetrics);
+
+              // Report activity date if callback provided
+              if (onActivityLoaded) {
+                onActivityLoaded(lastActivityDate);
+              }
             }
           }
         }
@@ -323,6 +355,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         });
 
         setMetrics(errorMetrics);
+
+        // Report no activity if error
+        if (onActivityLoaded) {
+          onActivityLoaded(undefined);
+        }
       }
     };
 
@@ -359,6 +396,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
           });
 
           setMetrics(errorMetrics);
+
+          // Report no activity for unsupported platform
+          if (onActivityLoaded) {
+            onActivityLoaded(undefined);
+          }
         }
       } catch (err) {
         console.error("Error fetching activity metrics:", err);
@@ -374,6 +416,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         });
 
         setMetrics(errorMetrics);
+
+        // Report error as no activity
+        if (onActivityLoaded) {
+          onActivityLoaded(undefined);
+        }
       }
     };
 

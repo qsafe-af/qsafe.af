@@ -1,0 +1,175 @@
+/* Projects component styles */
+
+/* Markdown wrapper - Light mode */
+.markdown-wrapper {
+  background-color: var(--bs-gray-100);
+  border: 1px solid var(--bs-gray-200);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Markdown wrapper - Dark mode */
+[data-bs-theme="dark"] .markdown-wrapper {
+  background-color: var(--bs-gray-900);
+  border: 1px solid var(--bs-gray-800);
+}
+
+/* Markdown content styling */
+.markdown-content {
+  line-height: 1.6;
+}
+
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.markdown-content ul {
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content a {
+  color: var(--bs-link-color);
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--bs-gray-300);
+  margin: 2rem 0;
+}
+
+/* Dark mode text colors */
+[data-bs-theme="dark"] .markdown-content h2,
+[data-bs-theme="dark"] .markdown-content h3,
+[data-bs-theme="dark"] .markdown-content h4 {
+  color: var(--bs-gray-100);
+}
+
+[data-bs-theme="dark"] .markdown-content p,
+[data-bs-theme="dark"] .markdown-content li {
+  color: var(--bs-gray-300);
+}
+
+[data-bs-theme="dark"] .markdown-content a {
+  color: var(--bs-info);
+}
+
+[data-bs-theme="dark"] .markdown-content a:hover {
+  color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .markdown-content strong {
+  color: var(--bs-gray-200);
+}
+
+[data-bs-theme="dark"] .markdown-content em {
+  color: var(--bs-gray-300);
+}
+
+[data-bs-theme="dark"] .markdown-content hr {
+  border-top-color: var(--bs-gray-700);
+}
+
+/* Table styling improvements */
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+}
+
+/* Security indicator styling */
+.security-indicator-bar {
+  transition: width 0.3s ease;
+}
+
+/* Activity indicators hover effect */
+.activity-indicators {
+  transition: transform 0.2s ease;
+}
+
+.activity-indicators:hover {
+  transform: scale(1.05);
+}
+
+/* Sort mode button group */
+.btn-group .btn {
+  transition: all 0.2s ease;
+}
+
+.btn-group .btn:hover:not(.btn-primary) {
+  background-color: var(--bs-gray-200);
+}
+
+[data-bs-theme="dark"] .btn-group .btn:hover:not(.btn-primary) {
+  background-color: var(--bs-gray-700);
+}
+
+/* Badge styling in dark mode */
+[data-bs-theme="dark"] .badge.bg-secondary {
+  background-color: var(--bs-gray-700) !important;
+}
+
+[data-bs-theme="dark"] .badge.bg-warning {
+  color: var(--bs-dark) !important;
+}
+
+/* Project name link styling */
+.project-name-link {
+  font-weight: 600;
+  color: var(--bs-body-color);
+  text-decoration: none;
+}
+
+.project-name-link:hover {
+  color: var(--bs-primary);
+  text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .markdown-wrapper {
+    padding: 1rem !important;
+  }
+
+  .markdown-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .markdown-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .markdown-content h4 {
+    font-size: 1rem;
+  }
+
+  .btn-group .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Loading spinner container */
+.loading-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Error alert styling */
+.alert-danger {
+  border-left: 4px solid var(--bs-danger);
+}
