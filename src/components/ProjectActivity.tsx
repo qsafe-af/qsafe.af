@@ -77,8 +77,8 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         // Fetch all pages until we get events older than our start date or no more events
         while (hasMore) {
           const endpoint = isOrg
-            ? `https://api.github.com/orgs/${parts[0]}/events?per_page=100&page=${page}`
-            : `https://api.github.com/repos/${parts.join("/")}/events?per_page=100&page=${page}`;
+            ? `https://cf-gh-proxy.snapr.workers.dev/org/${parts[0]}/events?per_page=100&page=${page}`
+            : `https://cf-gh-proxy.snapr.workers.dev/repo/${parts.join("/")}/events?per_page=100&page=${page}`;
 
           console.log(
             `Fetching GitHub activity from: ${endpoint} (page ${page})`,
