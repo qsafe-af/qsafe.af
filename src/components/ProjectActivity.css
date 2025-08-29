@@ -1,23 +1,24 @@
 .activity-indicators {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.9em;
+    user-select: none;
+}
+
+.activity-line {
+    display: flex;
     align-items: center;
     gap: 0.25rem;
-    margin-left: 0.5rem;
-    font-size: 1.1em;
-    vertical-align: middle;
-    cursor: help;
-    user-select: none;
+    white-space: nowrap;
 }
 
 .activity-recency,
 .activity-volume {
     display: inline-block;
-    transition: transform 0.2s ease;
-}
-
-.activity-indicators:hover .activity-recency,
-.activity-indicators:hover .activity-volume {
-    transform: scale(1.2);
+    font-size: 1.2em;
+    min-width: 1.5em;
+    text-align: center;
 }
 
 .activity-recency {
@@ -29,17 +30,15 @@
     opacity: 0.9;
 }
 
-/* Activity count display */
-.activity-count {
-    margin-left: 0.25rem;
+/* Text labels */
+.activity-line .text-muted {
     font-size: 0.85em;
     color: #6c757d;
-    font-weight: 500;
-    vertical-align: baseline;
+    line-height: 1.2;
 }
 
 /* Loading state */
-.activity-indicators .text-muted {
+.activity-indicators .text-muted.loading {
     animation: pulse 1.5s ease-in-out infinite;
     opacity: 0.6;
 }
@@ -47,7 +46,6 @@
 /* Error state */
 .activity-indicators .text-warning {
     color: #ffc107;
-    animation: shake 0.5s ease-in-out;
 }
 
 @keyframes pulse {
@@ -60,36 +58,33 @@
     }
 }
 
-@keyframes shake {
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-    25% {
-        transform: translateX(-2px);
-    }
-    75% {
-        transform: translateX(2px);
-    }
-}
-
 /* Ensure proper alignment in table cells */
 td .activity-indicators {
-    white-space: nowrap;
-}
-
-/* Hide count on very small screens */
-@media (max-width: 480px) {
-    .activity-count {
-        display: none;
-    }
+    margin: 0.25rem 0;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .activity-indicators {
-        font-size: 1em;
+        font-size: 0.85em;
         gap: 0.15rem;
-        margin-left: 0.25rem;
+    }
+
+    .activity-recency,
+    .activity-volume {
+        font-size: 1.1em;
+    }
+
+    .activity-line .text-muted {
+        font-size: 0.8em;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+    .activity-line .text-muted {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }

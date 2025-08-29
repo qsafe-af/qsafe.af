@@ -34,6 +34,29 @@ const getGitHubToken = (): string | undefined => {
   return undefined;
 };
 
+// Helper function to construct GitHub API endpoints based on environment
+const getGitHubEndpoint = (
+  isOrg: boolean,
+  parts: string[],
+  page: number,
+): string => {
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
+  if (isLocalhost) {
+    // Use GitHub API directly on localhost (uses "orgs" and "repos")
+    return isOrg
+      ? `https://api.github.com/orgs/${parts[0]}/events?per_page=100&page=${page}`
+      : `https://api.github.com/repos/${parts.join("/")}/events?per_page=100&page=${page}`;
+  } else {
+    // Use proxy on qsafe.af and other non-localhost domains (uses "org" and "repo")
+    return isOrg
+      ? `https://cf-gh-proxy.snapr.workers.dev/org/${parts[0]}/events?per_page=100&page=${page}`
+      : `https://cf-gh-proxy.snapr.workers.dev/repo/${parts.join("/")}/events?per_page=100&page=${page}`;
+  }
+};
+
 const ProjectActivity: React.FC<ProjectActivityProps> = ({
   url,
   periodDays = 30,
@@ -76,9 +99,7 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
 
         // Fetch all pages until we get events older than our start date or no more events
         while (hasMore) {
-          const endpoint = isOrg
-            ? `https://cf-gh-proxy.snapr.workers.dev/org/${parts[0]}/events?per_page=100&page=${page}`
-            : `https://cf-gh-proxy.snapr.workers.dev/repo/${parts.join("/")}/events?per_page=100&page=${page}`;
+          const endpoint = getGitHubEndpoint(isOrg, parts, page);
 
           console.log(
             `Fetching GitHub activity from: ${endpoint} (page ${page})`,
@@ -515,34 +536,35 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
       )
     : null;
 
-  const tooltipText = [
-    daysSince !== null
-      ? `Last active: ${daysSince === 0 ? "Today" : daysSince === 1 ? "Yesterday" : `${daysSince} days ago`}`
-      : "",
-    metrics.eventCount !== undefined
-      ? metrics.hasMoreEvents
-        ? `Activity: ~${metrics.eventCount}+ events in ${periodDays} days (approximate)`
-        : `Activity: ${metrics.eventCount} events in ${periodDays} days`
-      : "",
-    metrics.lastActivityDate
-      ? `Date: ${metrics.lastActivityDate.toLocaleDateString()}`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const getLastActiveText = () => {
+    if (daysSince === null) return "No activity";
+    if (daysSince === 0) return "Today";
+    if (daysSince === 1) return "Yesterday";
+    return `${daysSince} days ago`;
+  };
+
+  const getActivityText = () => {
+    if (metrics.eventCount === undefined) return "No data";
+    if (metrics.eventCount === 0) return "No events";
+    const text = `${metrics.eventCount} events in ${periodDays} days`;
+    return metrics.hasMoreEvents ? `~${text}` : text;
+  };
 
   return (
-    <span className="activity-indicators" title={tooltipText}>
-      <span className="activity-recency">{getRecencyIndicator()}</span>
-      <span className="activity-volume">{getVolumeIndicator()}</span>
-      {metrics.eventCount !== undefined && metrics.eventCount > 0 && (
-        <span className="activity-count text-muted small">
-          {metrics.hasMoreEvents
-            ? `(~${metrics.eventCount}+)`
-            : `(${metrics.eventCount})`}
+    <div className="activity-indicators">
+      <div className="activity-line">
+        <span className="activity-recency">{getRecencyIndicator()}</span>
+        <span className="text-muted small ms-2">
+          Last active: {getLastActiveText()}
         </span>
-      )}
-    </span>
+      </div>
+      <div className="activity-line">
+        <span className="activity-volume">{getVolumeIndicator()}</span>
+        <span className="text-muted small ms-2">
+          Activity: {getActivityText()}
+        </span>
+      </div>
+    </div>
   );
 };
 
