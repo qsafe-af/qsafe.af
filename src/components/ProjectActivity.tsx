@@ -60,8 +60,8 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
       try {
         // Fetch recent events
         const endpoint = isOrg
-          ? `https://api.github.com/orgs/${parts[0]}/events?per_page=100`
-          : `https://api.github.com/repos/${parts.join("/")}/events?per_page=100`;
+          ? `https://cf-gh-proxy.snapr.workers.dev/org/${parts[0]}/events?per_page=100`
+          : `https://cf-gh-proxy.snapr.workers.dev/repo/${parts.join("/")}/events?per_page=100`;
 
         console.log(`Fetching GitHub activity from: ${endpoint}`);
 
