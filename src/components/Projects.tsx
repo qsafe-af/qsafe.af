@@ -65,7 +65,7 @@ const Projects: React.FC = () => {
 
   return (
     <div className="container">
-      <h3>quantum safe project radar</h3>
+      <h3>Quantum-Safe Crypto Radar</h3>
       <table className="table table-striped">
         <thead>
           <tr>
@@ -98,10 +98,11 @@ const Projects: React.FC = () => {
                   href={project.repo}
                   target="_blank"
                   rel="noopener noreferrer"
+                  style={{ marginRight: "8px" }}
                 >
                   <i className={`bi bi-${selectIcon(project.repo)}`}></i>
-                  <ProjectActivity url={project.repo} />
                 </a>
+                <ProjectActivity url={project.repo} />
               </td>
             </tr>
           ))}
