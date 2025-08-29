@@ -4,6 +4,7 @@ import { Container, Card, Row, Col, Badge } from "react-bootstrap";
 import { getAllChains } from "./chains";
 import { themeClasses } from "./theme-utils";
 import type { Chain } from "./types";
+import Projects from "./components/Projects";
 
 const Chains: React.FC = () => {
   const chains = getAllChains();
@@ -84,6 +85,9 @@ const Chains: React.FC = () => {
             </Card>
           </Col>
         ))}
+      </Row>
+      <Row>
+        <Projects />
       </Row>
 
       {chains.length === 0 && (
