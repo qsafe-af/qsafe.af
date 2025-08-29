@@ -1,0 +1,181 @@
+{
+  "nist_pqc_signature_levels": {
+    "draft_round3 (2022 finalists)": {
+      "level1": [
+        {
+          "scheme": "Falcon-512",
+          "family": "lattice-based",
+          "standard": "ML-DSA finalist (now FIPS 205)",
+          "public_key": "~897",
+          "signature": "~666"
+        },
+        {
+          "scheme": "Dilithium-II",
+          "family": "lattice-based",
+          "standard": "ML-DSA finalist (now FIPS 204)",
+          "public_key": "~1,312",
+          "signature": "~2,420"
+        },
+        {
+          "scheme": "SPHINCS+-128s",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~8,080"
+        },
+        {
+          "scheme": "SPHINCS+-128f",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~16,080"
+        }
+      ],
+      "level2": [
+        {
+          "scheme": "Dilithium-II (alt params)",
+          "family": "lattice-based",
+          "standard": "FIPS 204",
+          "public_key": "~1,312",
+          "signature": "~2,420"
+        }
+      ],
+      "level3": [
+        {
+          "scheme": "Dilithium-III",
+          "family": "lattice-based",
+          "standard": "FIPS 204",
+          "public_key": "~1,952",
+          "signature": "~3,293"
+        },
+        {
+          "scheme": "SPHINCS+-192s",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~16,224"
+        },
+        {
+          "scheme": "SPHINCS+-192f",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~30,856"
+        }
+      ],
+      "level5": [
+        {
+          "scheme": "Falcon-1024",
+          "family": "lattice-based",
+          "standard": "FIPS 205",
+          "public_key": "~1,793",
+          "signature": "~1,280"
+        },
+        {
+          "scheme": "Dilithium-V",
+          "family": "lattice-based",
+          "standard": "FIPS 204",
+          "public_key": "~1,952",
+          "signature": "~4,595"
+        },
+        {
+          "scheme": "SPHINCS+-256s",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~29,792"
+        },
+        {
+          "scheme": "SPHINCS+-256f",
+          "family": "hash-based",
+          "standard": "FIPS 203",
+          "public_key": "~32",
+          "signature": "~49,856"
+        }
+      ]
+    },
+    "final_fips (2024 standards)": {
+      "fips203 (SPHINCS+)": {
+        "level1": [
+          {
+            "scheme": "SPHINCS+-SHA2-128s",
+            "public_key": "~32",
+            "signature": "~8,080"
+          },
+          {
+            "scheme": "SPHINCS+-SHA2-128f",
+            "public_key": "~32",
+            "signature": "~16,080"
+          }
+        ],
+        "level3": [
+          {
+            "scheme": "SPHINCS+-SHA2-192s",
+            "public_key": "~32",
+            "signature": "~16,224"
+          },
+          {
+            "scheme": "SPHINCS+-SHA2-192f",
+            "public_key": "~32",
+            "signature": "~30,856"
+          }
+        ],
+        "level5": [
+          {
+            "scheme": "SPHINCS+-SHA2-256s",
+            "public_key": "~32",
+            "signature": "~29,792"
+          },
+          {
+            "scheme": "SPHINCS+-SHA2-256f",
+            "public_key": "~32",
+            "signature": "~49,856"
+          }
+        ]
+      },
+      "fips204 (Dilithium)": {
+        "level2": [
+          {
+            "scheme": "Dilithium-II",
+            "public_key": "~1",
+            "312": null,
+            "signature": "~2,420"
+          }
+        ],
+        "level3": [
+          {
+            "scheme": "Dilithium-III",
+            "public_key": "~1",
+            "952": null,
+            "signature": "~3,293"
+          }
+        ],
+        "level5": [
+          {
+            "scheme": "Dilithium-V",
+            "public_key": "~1",
+            "952": null,
+            "signature": "~4,595"
+          }
+        ]
+      },
+      "fips205 (Falcon)": {
+        "level1": [
+          {
+            "scheme": "Falcon-512",
+            "public_key": "~897",
+            "signature": "~666"
+          }
+        ],
+        "level5": [
+          {
+            "scheme": "Falcon-1024",
+            "public_key": "~1",
+            "793": null,
+            "signature": "~1,280"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,259 @@
+{
+  "as_of": "2025-08-24",
+  "notes": "Sizes are approximate, taken from NIST FIPS profiles. Status = active/partial/historical.",
+  "projects": [
+    {
+      "name": "Quantum Resistant Ledger",
+      "symbol": "QRL",
+      "status": "active",
+      "homepage": "https://www.theqrl.org/",
+      "repo": "https://github.com/theqrl/QRL",
+      "signature_schemes": [
+        {
+          "name": "XMSS",
+          "family": "hash-based",
+          "standard": "RFC 8391 (XMSS, XMSS^MT, WOTS+)",
+          "nist_security_level": "Level 1–3 (depends on param set)",
+          "usage": "account/transaction signatures (chain-wide)",
+          "sizes": {
+            "public_key": "~64",
+            "signature": "~2,000–30,000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "xx network (xx coin)",
+      "symbol": "XX",
+      "status": "active",
+      "homepage": "https://xx.network/",
+      "repo": "https://github.com/xxfoundation/xxchain",
+      "signature_schemes": [
+        {
+          "name": "WOTS+",
+          "family": "hash-based",
+          "standard": "Part of RFC 8391",
+          "nist_security_level": "Level 1–3 (via XMSS params)",
+          "usage": "transaction signatures and consensus endorsements",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~2,000–10,000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mochimo",
+      "symbol": "MCM",
+      "status": "active",
+      "homepage": "https://mochimo.org/",
+      "repo": "https://github.com/mochimodev/mochimo",
+      "signature_schemes": [
+        {
+          "name": "WOTS+",
+          "family": "hash-based",
+          "standard": "Part of RFC 8391",
+          "nist_security_level": "Level 1–3 (via XMSS params)",
+          "usage": "account/transaction signatures",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~2,000–10,000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cellframe Network",
+      "symbol": "CELL",
+      "status": "active",
+      "homepage": "https://cellframe.net/",
+      "repo": "https://gitlab.demlabs.net/cellframe/cellframe-node",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA, Dilithium)",
+          "nist_security_level": "Level 2 / 3 / 5",
+          "usage": "default network signature",
+          "sizes": {
+            "public_key": "~1,312 (Dilithium-II) / ~1,952 (Dilithium-III/V)",
+            "signature": "~2,420 (Dilithium-II) / ~3,293 (Dilithium-III) / ~4,595 (Dilithium-V)"
+          }
+        },
+        {
+          "name": "Falcon",
+          "family": "lattice-based",
+          "standard": "FIPS 205 (ML-DSA, Falcon)",
+          "nist_security_level": "Level 1 / 5",
+          "usage": "implemented/available",
+          "sizes": {
+            "public_key": "~897 (Falcon-512) / ~1,793 (Falcon-1024)",
+            "signature": "~666 (Falcon-512) / ~1,280 (Falcon-1024)"
+          }
+        },
+        {
+          "name": "SPHINCS+",
+          "family": "hash-based",
+          "standard": "FIPS 203 (SPHINCS+)",
+          "nist_security_level": "Level 1 / 3 / 5",
+          "usage": "implemented/available",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~8,080 (128s) / ~16,224 (192s) / ~29,792 (256s)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Algorand",
+      "symbol": "ALGO",
+      "status": "partial",
+      "homepage": "https://algorand.co/technology/post-quantum",
+      "repo": "https://github.com/algorand/go-algorand",
+      "signature_schemes": [
+        {
+          "name": "Falcon",
+          "family": "lattice-based",
+          "standard": "FIPS 205",
+          "nist_security_level": "Level 1 / 5",
+          "usage": "State Proofs; opcode for tx verify not mainnet yet",
+          "sizes": {
+            "public_key": "~897 (Falcon-512) / ~1,793 (Falcon-1024)",
+            "signature": "~666 (Falcon-512) / ~1,280 (Falcon-1024)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quantus Network",
+      "symbol": "QUAN",
+      "status": "testnet",
+      "homepage": "https://www.quantus.com/",
+      "repo": "https://github.com/Quantus-Network",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA)",
+          "nist_security_level": "Level 5",
+          "usage": "transaction signatures, p2p connections",
+          "sizes": {
+            "public_key": "~2,592",
+            "signature": "~4,627"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Starknet",
+      "symbol": "STRK",
+      "status": "partial",
+      "homepage": "https://www.starknet.io/",
+      "repo": "https://github.com/starkware-libs",
+      "signature_schemes": [
+        {
+          "name": "Poseidon",
+          "family": "hash-based",
+          "standard": "Not standardized (quantum-resistant hash)",
+          "nist_security_level": "Level 1–5 (assumed, pending standardization)",
+          "usage": "hash function for STARK proofs and transaction integrity",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~32"
+          }
+        }
+      ]
+    },
+    {
+      "name": "QANplatform",
+      "symbol": "QANX",
+      "status": "active",
+      "homepage": "https://www.qanplatform.com/",
+      "repo": "https://github.com/QANplatform",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA, Dilithium)",
+          "nist_security_level": "Level 2 / 3 / 5",
+          "usage": "transaction signatures",
+          "sizes": {
+            "public_key": "~1,312 (Dilithium-II) / ~1,952 (Dilithium-III/V)",
+            "signature": "~2,420 (Dilithium-II) / ~3,293 (Dilithium-III) / ~4,595 (Dilithium-V)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nexus",
+      "symbol": "NXS",
+      "status": "active",
+      "homepage": "https://nexus.io/",
+      "repo": "https://github.com/Nexusoft",
+      "signature_schemes": [
+        {
+          "name": "XMSS",
+          "family": "hash-based",
+          "standard": "RFC 8391 (XMSS, WOTS+)",
+          "nist_security_level": "Level 1–3 (depends on param set)",
+          "usage": "transaction signatures",
+          "sizes": {
+            "public_key": "~32–64",
+            "signature": "~2,000–30,000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LACChain",
+      "symbol": "",
+      "status": "active",
+      "homepage": "https://www.lacchain.net/",
+      "repo": "https://github.com/LACNetNetworks",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA, Dilithium)",
+          "nist_security_level": "Level 2 / 3 / 5",
+          "usage": "transaction signatures and network communication",
+          "sizes": {
+            "public_key": "~1,312 (Dilithium-II) / ~1,952 (Dilithium-III/V)",
+            "signature": "~2,420 (Dilithium-II) / ~3,293 (Dilithium-III) / ~4,595 (Dilithium-V)"
+          }
+        },
+        {
+          "name": "Falcon",
+          "family": "lattice-based",
+          "standard": "FIPS 205 (ML-DSA, Falcon)",
+          "nist_security_level": "Level 1 / 5",
+          "usage": "transaction signatures and network communication",
+          "sizes": {
+            "public_key": "~897 (Falcon-512) / ~1,793 (Falcon-1024)",
+            "signature": "~666 (Falcon-512) / ~1,280 (Falcon-1024)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "IOTA (pre-Chrysalis)",
+      "symbol": "IOTA",
+      "status": "historical",
+      "homepage": "https://www.iota.org/",
+      "repo": "https://github.com/iotaledger",
+      "signature_schemes": [
+        {
+          "name": "W-OTS / WOTS+",
+          "family": "hash-based",
+          "standard": "Part of RFC 8391",
+          "nist_security_level": "Level 1–3",
+          "usage": "historical tx signatures; replaced by Ed25519 in 2021",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~2,000–10,000"
+          }
+        }
+      ]
+    }
+  ]
+}
