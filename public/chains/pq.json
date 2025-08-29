@@ -125,21 +125,112 @@
       ]
     },
     {
-      "name": "Quantus",
+      "name": "Quantus Network",
       "symbol": "QUAN",
       "status": "testnet",
-      "homepage": "https://quantus.com",
-      "repo": "https://github.com/Quantus-Network/chain",
+      "homepage": "https://www.quantus.com/",
+      "repo": "https://github.com/Quantus-Network",
       "signature_schemes": [
         {
-          "name": "ML-DSA (CRYSTALS-Dilithium)",
+          "name": "CRYSTALS-Dilithium",
           "family": "lattice-based",
-          "standard": "FIPS 204 (Module-Lattice-based Digital Signature Algorithm)",
-          "nist_security_level": "Level 5 (ML-DSA-87)",
-          "usage": "account/transaction signatures, node identity",
+          "standard": "FIPS 204 (ML-DSA)",
+          "nist_security_level": "Level 5",
+          "usage": "transaction signatures, p2p connections",
           "sizes": {
             "public_key": "~2,592",
-            "signature": "~4,595"
+            "signature": "~4,627"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Starknet",
+      "symbol": "STRK",
+      "status": "partial",
+      "homepage": "https://www.starknet.io/",
+      "repo": "https://github.com/starkware-libs",
+      "signature_schemes": [
+        {
+          "name": "Poseidon",
+          "family": "hash-based",
+          "standard": "Not standardized (quantum-resistant hash)",
+          "nist_security_level": "Level 1–5 (assumed, pending standardization)",
+          "usage": "hash function for STARK proofs and transaction integrity",
+          "sizes": {
+            "public_key": "~32",
+            "signature": "~32"
+          }
+        }
+      ]
+    },
+    {
+      "name": "QANplatform",
+      "symbol": "QANX",
+      "status": "active",
+      "homepage": "https://www.qanplatform.com/",
+      "repo": "https://github.com/QANplatform",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA, Dilithium)",
+          "nist_security_level": "Level 2 / 3 / 5",
+          "usage": "transaction signatures",
+          "sizes": {
+            "public_key": "~1,312 (Dilithium-II) / ~1,952 (Dilithium-III/V)",
+            "signature": "~2,420 (Dilithium-II) / ~3,293 (Dilithium-III) / ~4,595 (Dilithium-V)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nexus",
+      "symbol": "NXS",
+      "status": "active",
+      "homepage": "https://nexus.io/",
+      "repo": "https://github.com/Nexusoft",
+      "signature_schemes": [
+        {
+          "name": "XMSS",
+          "family": "hash-based",
+          "standard": "RFC 8391 (XMSS, WOTS+)",
+          "nist_security_level": "Level 1–3 (depends on param set)",
+          "usage": "transaction signatures",
+          "sizes": {
+            "public_key": "~32–64",
+            "signature": "~2,000–30,000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LACChain",
+      "symbol": "",
+      "status": "active",
+      "homepage": "https://www.lacchain.net/",
+      "repo": "https://github.com/LACNetNetworks",
+      "signature_schemes": [
+        {
+          "name": "CRYSTALS-Dilithium",
+          "family": "lattice-based",
+          "standard": "FIPS 204 (ML-DSA, Dilithium)",
+          "nist_security_level": "Level 2 / 3 / 5",
+          "usage": "transaction signatures and network communication",
+          "sizes": {
+            "public_key": "~1,312 (Dilithium-II) / ~1,952 (Dilithium-III/V)",
+            "signature": "~2,420 (Dilithium-II) / ~3,293 (Dilithium-III) / ~4,595 (Dilithium-V)"
+          }
+        },
+        {
+          "name": "Falcon",
+          "family": "lattice-based",
+          "standard": "FIPS 205 (ML-DSA, Falcon)",
+          "nist_security_level": "Level 1 / 5",
+          "usage": "transaction signatures and network communication",
+          "sizes": {
+            "public_key": "~897 (Falcon-512) / ~1,793 (Falcon-1024)",
+            "signature": "~666 (Falcon-512) / ~1,280 (Falcon-1024)"
           }
         }
       ]

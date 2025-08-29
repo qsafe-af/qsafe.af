@@ -219,7 +219,7 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
 
             // Report activity date if callback provided
             if (onActivityLoaded) {
-              onActivityLoaded(mostRecentDate);
+              onActivityLoaded(lastActivityDate);
             }
           } else {
             const newMetrics = {
@@ -373,7 +373,6 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
         const parts = cleanPath.split("/");
 
         // Calculate the date range for volume metrics
-        const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - periodDays);
 
