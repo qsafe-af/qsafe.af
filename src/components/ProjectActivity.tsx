@@ -58,12 +58,11 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
       const isOrg = parts.length === 1;
 
       try {
-        // Fetch recent events
-        const endpoint = isOrg
-          ? `https://cf-gh-proxy.snapr.workers.dev/org/${parts[0]}/events?per_page=100`
-          : `https://cf-gh-proxy.snapr.workers.dev/repo/${parts.join("/")}/events?per_page=100`;
-
-        console.log(`Fetching GitHub activity from: ${endpoint}`);
+        // Since we're using a proxy, we can fetch all pages for accurate counts
+        let allEvents: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        let lastActivityDate: Date | undefined;
 
         const headers: HeadersInit = {
           Accept: "application/vnd.github.v3+json",
@@ -75,39 +74,72 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
           headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(endpoint, { headers });
+        // Fetch all pages until we get events older than our start date or no more events
+        while (hasMore) {
+          const endpoint = isOrg
+            ? `https://api.github.com/orgs/${parts[0]}/events?per_page=100&page=${page}`
+            : `https://api.github.com/repos/${parts.join("/")}/events?per_page=100&page=${page}`;
 
-        if (!response.ok) {
-          const errorText =
-            response.status === 404
-              ? "Repository not found"
-              : response.status === 403
-                ? "API rate limit exceeded"
-                : `HTTP ${response.status}`;
-          throw new Error(`GitHub API error: ${errorText}`);
-        }
+          console.log(
+            `Fetching GitHub activity from: ${endpoint} (page ${page})`,
+          );
 
-        const events = await response.json();
+          const response = await fetch(endpoint, { headers });
 
-        // Calculate metrics
-        let lastActivityDate: Date | undefined;
-        let eventCount = 0;
-        let hasMoreEvents = false;
+          if (!response.ok) {
+            const errorText =
+              response.status === 404
+                ? "Repository not found"
+                : response.status === 403
+                  ? "API rate limit exceeded"
+                  : `HTTP ${response.status}`;
+            throw new Error(`GitHub API error: ${errorText}`);
+          }
 
-        if (events && events.length > 0) {
-          lastActivityDate = new Date(events[0].created_at);
+          const events = await response.json();
 
-          // Count events within the period
-          events.forEach((event: any) => {
-            const eventDate = new Date(event.created_at);
-            if (eventDate >= startDate) {
-              eventCount++;
+          if (events.length === 0) {
+            hasMore = false;
+            break;
+          }
+
+          // Set the most recent activity date from the first event of the first page
+          if (page === 1 && events.length > 0) {
+            lastActivityDate = new Date(events[0].created_at);
+          }
+
+          // Check if we should continue fetching
+          const oldestEventDate = new Date(
+            events[events.length - 1].created_at,
+          );
+          if (oldestEventDate < startDate) {
+            // Filter and add only events within our date range
+            const relevantEvents = events.filter((event: any) => {
+              const eventDate = new Date(event.created_at);
+              return eventDate >= startDate;
+            });
+            allEvents = [...allEvents, ...relevantEvents];
+            hasMore = false;
+          } else {
+            // All events on this page are within range
+            allEvents = [...allEvents, ...events];
+
+            // Continue if we got a full page
+            if (events.length < 100) {
+              hasMore = false;
+            } else {
+              page++;
+              // Limit pages to prevent infinite loops (GitHub API caps at 10 pages for events anyway)
+              if (page > 10) {
+                hasMore = false;
+              }
             }
-          });
-
-          // If we got 100 events (page limit), there are likely more
-          hasMoreEvents = events.length === 100;
+          }
         }
+
+        // Calculate final metrics
+        let eventCount = allEvents.length;
+        let hasMoreEvents = false; // We fetched all pages, so this is always false for GitHub
 
         const newMetrics = {
           lastActivityDate,
@@ -277,7 +309,7 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
               if (eventsResponse.ok) {
                 const events = await eventsResponse.json();
                 eventCount = events.length;
-                hasMoreEvents = events.length === 100; // Hit page limit
+                hasMoreEvents = events.length === 100; // Hit page limit - GitLab still shows 100+
               } else {
                 // If events fail, estimate based on commit count
                 const commitsResponse = await fetch(
@@ -292,7 +324,7 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
                 if (commitsResponse.ok) {
                   const commits = await commitsResponse.json();
                   eventCount = commits.length;
-                  hasMoreEvents = commits.length === 100; // Hit page limit
+                  hasMoreEvents = commits.length === 100; // Hit page limit - GitLab still shows 100+
                 }
               }
 
@@ -488,7 +520,9 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
       ? `Last active: ${daysSince === 0 ? "Today" : daysSince === 1 ? "Yesterday" : `${daysSince} days ago`}`
       : "",
     metrics.eventCount !== undefined
-      ? `Activity: ${metrics.hasMoreEvents ? `${metrics.eventCount}+` : metrics.eventCount} events in ${periodDays} days`
+      ? metrics.hasMoreEvents
+        ? `Activity: ~${metrics.eventCount}+ events in ${periodDays} days (approximate)`
+        : `Activity: ${metrics.eventCount} events in ${periodDays} days`
       : "",
     metrics.lastActivityDate
       ? `Date: ${metrics.lastActivityDate.toLocaleDateString()}`
@@ -503,11 +537,9 @@ const ProjectActivity: React.FC<ProjectActivityProps> = ({
       <span className="activity-volume">{getVolumeIndicator()}</span>
       {metrics.eventCount !== undefined && metrics.eventCount > 0 && (
         <span className="activity-count text-muted small">
-          (
           {metrics.hasMoreEvents
-            ? `${metrics.eventCount}+`
-            : metrics.eventCount}
-          )
+            ? `(~${metrics.eventCount}+)`
+            : `(${metrics.eventCount})`}
         </span>
       )}
     </span>
