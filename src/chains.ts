@@ -21,11 +21,14 @@ export const chains: Record<string, Chain> = {
     endpoints: ["wss://a.i.res.fm"],
     telemetry: "wss://tc0.res.fm/feed",
   },
-  quantus: {
-    name: "quantus",
+  schrodinger: {
+    name: "schrodinger",
     genesis:
-      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    displayName: "Quantus",
+      "0xc54142365c8b26364d6f3768d4633f736ffb07d7b23aba1c450bd5bd3fad09f4",
+    displayName: "Quantus Testnet",
+    endpoints: ["wss://quantu.se"],
+    indexer: "https://quantu.se/graphql",
+    telemetry: "wss://tc0.res.fm/feed",
   },
 };
 
