@@ -3,6 +3,15 @@ import type { Chain } from "./types";
 
 // Dictionary of chains with lowercase name as key
 export const chains: Record<string, Chain> = {
+  schrodinger: {
+    name: "schrodinger",
+    genesis:
+      "0xc54142365c8b26364d6f3768d4633f736ffb07d7b23aba1c450bd5bd3fad09f4",
+    displayName: "Quantus Testnet",
+    endpoints: ["wss://quantu.se"],
+    indexer: "https://quantu.se/graphql",
+    telemetry: "wss://tc0.res.fm/feed",
+  },
   resonance: {
     name: "resonance",
     genesis:
@@ -19,15 +28,6 @@ export const chains: Record<string, Chain> = {
       "0x67391d3f740ef644c4dc91c9004af18fb4b41a6ead0719a06ccfbca50f27b015",
     displayName: "Heisenberg",
     endpoints: ["wss://a.i.res.fm"],
-    telemetry: "wss://tc0.res.fm/feed",
-  },
-  schrodinger: {
-    name: "schrodinger",
-    genesis:
-      "0xc54142365c8b26364d6f3768d4633f736ffb07d7b23aba1c450bd5bd3fad09f4",
-    displayName: "Quantus Testnet",
-    endpoints: ["wss://quantu.se"],
-    indexer: "https://quantu.se/graphql",
     telemetry: "wss://tc0.res.fm/feed",
   },
 };
