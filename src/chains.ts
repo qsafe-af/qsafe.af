@@ -10,6 +10,7 @@ export const chains: Record<string, Chain> = {
     displayName: "Quantus Testnet",
     endpoints: ["wss://quantu.se"],
     indexer: "https://quantu.se/graphql",
+    treasury: "qzmviwoPJDWSHYw9BUwfjBc6gACdZCzho6eNEkEX459zrTdPK",
     telemetry: "wss://tc0.res.fm/feed",
   },
   resonance: {
