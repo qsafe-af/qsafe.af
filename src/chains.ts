@@ -26,7 +26,7 @@ export const chains: Record<string, Chain> = {
   heisenberg: {
     name: "heisenberg",
     genesis:
-      "0x67391d3f740ef644c4dc91c9004af18fb4b41a6ead0719a06ccfbca50f27b015",
+      "0xd93f794075d0a81a1c3232130132083ea3c30cd4a0c5643902e8c8943c29f0b1",
     displayName: "Heisenberg",
     endpoints: ["wss://a.i.res.fm"],
     telemetry: "wss://tc0.res.fm/feed",
